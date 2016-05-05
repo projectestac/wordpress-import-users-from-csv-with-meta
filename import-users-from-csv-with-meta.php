@@ -4,27 +4,107 @@ Plugin Name: Import users from CSV with meta
 Plugin URI: http://www.codection.com
 Description: This plugins allows to import users using CSV files to WP database automatically
 Author: codection
-Version: 1.2
-Author URI: https://codection.com
+Version: 1.8.7.2
+Author URI: http://codection.com
 */
 
+if ( ! defined( 'ABSPATH' ) ) exit; 
+
 $url_plugin = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__), "", plugin_basename(__FILE__));
-$wp_users_fields = array("user_nicename", "user_url", "display_name", "nickname", "first_name", "last_name", "description", "jabber", "aim", "yim", "user_registered");
-$wp_min_fields = array("Username", "Password", "Email");
+$wp_users_fields = array("user_nicename", "user_url", "display_name", "nickname", "first_name", "last_name", "description", "jabber", "aim", "yim", "user_registered", "password");
+$wp_min_fields = array("Username", "Email");
+
+include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+
+require_once( "smtp.php" );
+require_once( "email-repeated.php" );
+
+if( is_plugin_active( 'buddypress/bp-loader.php' ) ){
+	if ( defined( 'BP_VERSION' ) )
+		acui_loader();
+	else
+		add_action( 'bp_init', 'acui_loader' );
+}
+else
+	acui_loader();
+
+function acui_loader(){
+	require_once( "importer.php" );
+}
 
 function acui_init(){
 	acui_activate();
 }
 
 function acui_activate(){
+	global $acui_smtp_options;
+
+	$sitename = strtolower( $_SERVER['SERVER_NAME'] );
+	if ( substr( $sitename, 0, 4 ) == 'www.' ) {
+		$sitename = substr( $sitename, 4 );
+	}
+	
+	add_option( "acui_columns" );
+	
+	add_option( "acui_mail_subject", 'Welcome to ' . get_bloginfo("name"), '', false );
+	add_option( "acui_mail_body", 'Welcome,<br/>Your data to login in this site is:<br/><ul><li>URL to login: **loginurl**</li><li>Username = **username**</li><li>Password = **password**</li></ul>', '', false );
+	
+	add_option( "acui_cron_activated" );
+	add_option( "acui_send_mail_cron" );
+	add_option( "acui_send_mail_updated" );
+	add_option( "acui_cron_delete_users" );
+	add_option( "acui_cron_path_to_file" );
+	add_option( "acui_cron_period" );
+	add_option( "acui_cron_role" );
+	add_option( "acui_cron_log" );
+
+	// smtp
+	foreach ( $acui_smtp_options as $name => $val ) {
+		add_option( $name, $val );
+	}
 }
 
 function acui_deactivate(){
-	delete_option("acui_columns");
+	global $acui_smtp_options;
+
+	delete_option( "acui_columns" );
+	
+	delete_option( "acui_mail_subject" );
+	delete_option( "acui_mail_body" );
+
+	delete_option( "acui_cron_activated" );
+	delete_option( "acui_send_mail_cron" );
+	delete_option( "acui_send_mail_updated" );
+	delete_option( "acui_cron_delete_users" );
+	delete_option( "acui_cron_path_to_file" );
+	delete_option( "acui_cron_period" );
+	delete_option( "acui_cron_role" );
+	delete_option( "acui_cron_log" );
+
+	wp_clear_scheduled_hook( 'acui_cron' );
+
+	foreach ( $acui_smtp_options as $name => $val ) {
+		delete_option( $name );
+	}
 }
 
 function acui_menu() {
-	add_submenu_page( 'tools.php', 'Insert users massively (CSV)', 'Import users from CSV', 'manage_options', 'acui', 'acui_options' ); 
+	add_submenu_page( 'tools.php', 'Insert users massively (CSV)', 'Import users from CSV', 'create_users', 'acui', 'acui_options' );
+	add_submenu_page( NULL, 'SMTP Configuration', 'SMTP Configuration', 'create_users', 'acui-smtp', 'acui_smtp' );
+}
+
+function acui_plugin_row_meta( $links, $file ){
+	if ( strpos( $file, basename( __FILE__ ) ) !== false ) {
+		$new_links = array(
+					'<a href="https://www.paypal.me/codection" target="_blank">Donate</a>',
+					'<a href="mailto:contacto@codection.com" target="_blank">Premium support</a>',
+					'<a href="http://codection.com/tienda" target="_blank">Premium plugins</a>',
+				);
+		
+		$links = array_merge( $links, $new_links );
+	}
+	
+	return $links;
 }
 
 function acui_detect_delimiter($file){
@@ -50,7 +130,7 @@ function acui_detect_delimiter($file){
     	return "|";
 }
 
-function acui_string_conversion($string){
+function acui_string_conversion( $string ){
 	if(!preg_match('%(?:
     [\xC2-\xDF][\x80-\xBF]        # non-overlong 2-byte
     |\xE0[\xA0-\xBF][\x80-\xBF]               # excluding overlongs
@@ -66,120 +146,12 @@ function acui_string_conversion($string){
 		return $string;
 }
 
-function acui_import_users($file, $role){?>
-	<div class="wrap">
-		<h2>Importing users</h2>	
-		<?php
-			set_time_limit(0);
-			global $wpdb;
-			$headers = array();
-			global $wp_users_fields;
-			global $wp_min_fields;	
-	
-			echo "<h3>Ready to registers</h3>";
-			echo "<p>First row represents the form of sheet</p>";
-			$row = 0;
+function acui_mail_from(){
+	return get_option( "acui_mail_from" );
+}
 
-			ini_set('auto_detect_line_endings',TRUE);
-
-			$delimiter = acui_detect_delimiter($file);
-
-			$manager = new SplFileObject($file);
-			while ( $data = $manager->fgetcsv($delimiter) ):
-				if( empty($data[0]) )
-					continue;
-
-				if( count($data) == 1 )
-					$data = $data[0];
-				
-				foreach ($data as $key => $value)   {
-					$data[$key] = trim($value);
-				}
-
-				for($i = 0; $i < count($data); $i++){
-					$data[$i] = acui_string_conversion($data[$i]);
-				}
-				
-				if($row == 0):
-					// check min columns username - password - email
-					if(count($data) < 3){
-						echo "<div id='message' class='error'>File must contain at least 3 columns: username, password and email</div>";
-						break;
-					}
-
-					foreach($data as $element)
-						$headers[] = $element;
-
-					$columns = count($data);
-
-					$headers_filtered = array_diff($headers, $wp_users_fields);
-					$headers_filtered = array_diff($headers_filtered, $wp_min_fields);
-					update_option("acui_columns", $headers_filtered);
-					?>
-					<h3>Inserting and updating data</h3>
-					<table>
-						<tr><th>Row</th><?php foreach($headers as $element) echo "<th>" . $element . "</th>"; ?></tr>
-					<?php
-					$row++;
-				else:
-					if(count($data) != $columns): // if number of columns is not the same that columns in header
-						echo '<script>alert("Row number: ' . $row . ' has no the same columns than header, we are going to skip");</script>';
-						continue;
-					endif;
-
-					$username = $data[0];
-					$password = $data[1];
-					$email = $data[2];
-					$user_id = 0;
-
-					if(username_exists($username)){
-						$user_object = get_user_by( "login", $username );
-						$user_id = $user_object->ID;
-					}
-					else{
-						$user_id = wp_create_user($username, $password, $email);
-					}
-						
-					if(is_wp_error($user_id)){
-						echo '<script>alert("Problems with user: ' . $username . ', we are going to skip");</script>';
-						continue;
-					}
-
-					if(!( in_array("administrator", acui_get_roles($user_id), FALSE) || is_multisite() && is_super_admin( $user_id ) ))
-						wp_update_user(array ('ID' => $user_id, 'role' => $role)) ;
-						
-					if($columns > 3){
-						for($i=3; $i<$columns; $i++):
-							if( !empty($data) ){
-								if(in_array($headers[$i], $wp_users_fields))
-									wp_update_user( array( 'ID' => $user_id, $headers[$i] => $data[$i] ) );
-								else
-									update_user_meta($user_id, $headers[$i], $data[$i]);
-							}
-						endfor;
-					}
-
-					echo "<tr><td>" . ($row - 1) . "</td>";
-					foreach ($data as $element)
-						echo "<td>$element</td>";
-
-					echo "</tr>\n";
-
-					flush();
-				endif;
-
-				$row++;						
-			endwhile;
-			?>
-			</table>
-			<br/>
-			<p>Process finished you can go <a href="<?php echo get_admin_url() . '/users.php'; ?>">here to see results</a></p>
-			<?php
-			//fclose($manager);
-			ini_set('auto_detect_line_endings',FALSE);
-		?>
-	</div>
-<?php
+function acui_mail_from_name(){
+	return get_option( "acui_mail_from_name" );
 }
 
 function acui_get_roles($user_id){
@@ -207,178 +179,34 @@ function acui_get_editable_roles() {
     return $list_editable_roles;
 }
 
-function acui_options() 
-{
-	if (!current_user_can('edit_users'))  
-	{
-		wp_die(__('You are not allowed to see this content.'));
-		$acui_action_url = admin_url('options-general.php?page=' . plugin_basename(__FILE__));
-	}
-	else if(isset($_POST['uploadfile']))
-		acui_fileupload_process($_POST['role']);
-	else
-	{
-?>
-	<div class="wrap">
-		<div id='message' class='updated'>File must contain at least <strong>3 columns: username, password and email</strong>. These should be the first three columns and it should be placed <strong>in this order: username, password and email</strong>. If there are more columns, this plugin will manage it automatically.</div>
-		<div style="clear:both; width:100%;">
-			<h2>Import users from CSV</h2>
-		</div>
+function acui_check_options(){
+	if( get_option( "acui_mail_body" ) == "" )
+		update_option( "acui_mail_body", 'Welcome,<br/>Your data to login in this site is:<br/><ul><li>URL to login: **loginurl**</li><li>Username = **username**</li><li>Password = **password**</li></ul>' );
 
-		<div style="float:right; width:20%;">
-			<p><em>If you like this plugin, you can support it.</em></p>
-			<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-				<input type="hidden" name="cmd" value="_s-xclick">
-				<input type="hidden" name="hosted_button_id" value="T5J5F6XZTSYH2">
-				<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-				<img alt="" border="0" src="https://www.paypalobjects.com/es_ES/i/scr/pixel.gif" width="1" height="1">
-			</form>
-		</div>
+	if( get_option( "acui_mail_subject" ) == "" )
+		update_option( "acui_mail_subject", 'Welcome to ' . get_bloginfo("name") );
+}
 
-		<div style="float:left; width:80%;">
-			<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8" onsubmit="return check();">
-			<table class="form-table" style="width:50%">
-				<tbody>
-				<tr class="form-field">
-					<th scope="row"><label for="role">Role</label></th>
-					<td>
-					<select name="role" id="role">
-						<?php 
-							$list_roles = acui_get_editable_roles(); 
-							foreach ($list_roles as $key => $value) {
-								if($key == "subscriber")
-									echo "<option selected='selected' value='$key'>$value</option>";
-								else
-									echo "<option value='$key'>$value</option>";
-							}
-						?>
-					</select>
-					</td>
-				</tr>
-				<tr class="form-field form-required">
-					<th scope="row"><label for="user_login">CSV file <span class="description">(required)</span></label></th>
-					<td><input type="file" name="uploadfiles[]" id="uploadfiles" size="35" class="uploadfiles" /></td>
-				</tr>
-				</tbody>
-			</table>
-			<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn" value="Start importing"/>
-			</form>
-		</div>
+function acui_admin_tabs( $current = 'homepage' ) {
+    $tabs = array( 'homepage' => 'Import users from CSV', 'columns' => 'Customs columns loaded', 'mail-template' => 'Mail template', 'doc' => 'Documentation', 'cron' => 'Cron import', 'donate' => 'Donate', 'shop' => 'Shop', 'help' => 'Hire an expert' );
+    echo '<div id="icon-themes" class="icon32"><br></div>';
+    echo '<h2 class="nav-tab-wrapper">';
+    foreach( $tabs as $tab => $name ){
+       	$class = ( $tab == $current ) ? ' nav-tab-active' : '';
 
-		<div style="clear:both; width:100%;"></div>
-
-		<?php 
-		$headers = get_option("acui_columns"); 
-
-		if(is_array($headers) && !empty($headers)):
-		?>
-
-		<h3>Custom columns loaded</h3>
-		<table class="form-table">
-		<tbody>
-			<tr valign="top">
-				<th scope="row">Columns loaded in previous files</th>
-				<td><small><em>(if you load another CSV with different columns, the new ones will replace this list)</em></small>
-					<ol>
-						<?php foreach ($headers as $column): ?>
-							<li><?php echo $column; ?></li>
-						<?php endforeach; ?>						
-					</ol>
-				</td>
-			</tr>
-			<tr valign="top">
-				<th scope="row">WordPress default profile data</th>
-				<td>You can use those labels if you want to set data adapted to the WordPress default user columns (the ones who use the function <a href="http://codex.wordpress.org/Function_Reference/wp_update_user">wp_update_user</a>)
-					<ol>
-						<li><strong>user_nicename</strong>: A string that contains a URL-friendly name for the user. The default is the user's username.</li>
-						<li><strong>user_url</strong>: A string containing the user's URL for the user's web site.	</li>
-						<li><strong>display_name</strong>: A string that will be shown on the site. Defaults to user's username. It is likely that you will want to change this, for both appearance and security through obscurity (that is if you dont use and delete the default admin user).	</li>
-						<li><strong>nickname</strong>: The user's nickname, defaults to the user's username.	</li>
-						<li><strong>first_name</strong>: The user's first name.</li>
-						<li><strong>last_name</strong>: The user's last name.</li>
-						<li><strong>description</strong>: A string containing content about the user.</li>
-						<li><strong>jabber</strong>: User's Jabber account.</li>
-						<li><strong>aim</strong>: User's AOL IM account.</li>
-						<li><strong>yim</strong>: User's Yahoo IM account.</li>
-					</ol>
-				</td>
-			</tr>
-			<tr valign="top">
-				<th scope="row">Important notices</th>
-				<td>1) You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.</td>
-				<td>2) If you are updating data, leave empty any field to leave it without update. If you want to update it leaving it blank, you can always insert a blank space in this field.</td>
-			</tr>
-			<tr valign="top">
-				<th scope="row">Any question about it</th>
-			<td>Please contact: <a href="mailto:contacto@codection.com">contacto@codection.com</a>.</td>
-			</tr>
-			<tr valign="top">
-				<th scope="row">Example</th>
-			<td>Download this <a href="<?php echo plugins_url() . "/import-users-from-csv-with-meta/test.csv"; ?>">.csv file</a> to test</td> 
-			</tr>
-		</tbody></table>
-
-		<?php endif; ?>
-
-		<h3>Doc</h3>
-		<table class="form-table">
-		<tbody>
-			<tr valign="top">
-				<th scope="row">Columns position</th>
-				<td><small><em>(Documents should look like the one presented into screenshot. Remember you should fill the first three rows with the next values)</em></small>
-					<ol>
-						<li>Username</li>
-						<li>Password</li>
-						<li>Email</li>
-					</ol>						
-					<small><em>(The next columns are totally customizable and you can use whatever you want. All rows must contains same columns)</em></small>
-					<small><em>(User profile will be adapted to the kind of data you have selected)</em></small>
-				</td>
-			</tr>
-			<tr valign="top">
-				<th scope="row">WordPress default profile data</th>
-				<td>You can use those labels if you want to set data adapted to the WordPress default user columns (the ones who use the function <a href="http://codex.wordpress.org/Function_Reference/wp_update_user">wp_update_user</a>)
-					<ol>
-						<li><strong>user_nicename</strong>: A string that contains a URL-friendly name for the user. The default is the user's username.</li>
-						<li><strong>user_url</strong>: A string containing the user's URL for the user's web site.	</li>
-						<li><strong>display_name</strong>: A string that will be shown on the site. Defaults to user's username. It is likely that you will want to change this, for both appearance and security through obscurity (that is if you dont use and delete the default admin user).	</li>
-						<li><strong>nickname</strong>: The user's nickname, defaults to the user's username.	</li>
-						<li><strong>first_name</strong>: The user's first name.</li>
-						<li><strong>last_name</strong>: The user's last name.</li>
-						<li><strong>description</strong>: A string containing content about the user.</li>
-						<li><strong>jabber</strong>: User's Jabber account.</li>
-						<li><strong>aim</strong>: User's AOL IM account.</li>
-						<li><strong>yim</strong>: User's Yahoo IM account.</li>
-						<li><strong>user_registered</strong>: Using the WordPress format for this kind of data Y-m-d H:i:s.</li>
-					</ol>
-				</td>
-			</tr>
-			<tr valign="top">
-				<th scope="row">Important notice</th>
-				<td>You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.</td>
-			</tr>
-			<tr valign="top">
-				<th scope="row">Any question about it</th>
-			<td>Please contact: <a href="mailto:contacto@codection.com">contacto@codection.com</a>.</td>
-			</tr>
-			<tr valign="top">
-				<th scope="row">Example</th>
-			<td>Download this <a href="<?php echo plugins_url() . "/import-users-from-csv-with-meta/test.csv"; ?>">.csv file</a> to test</td> 
-			</tr>
-		</tbody></table>
-		<br/>
-		<div style="width:775px;margin:0 auto"><img src="<?php echo plugins_url() . "/import-users-from-csv-with-meta/csv_example.png"; ?>"/></div>
-	</div>
-	<script type="text/javascript">
-	function check(){
-		if(document.getElementById("uploadfiles").value == "") {
-		   alert("Please choose a file");
-		   return false;
+        if( $tab == "shop"  ){
+			$href = "http://codection.com/tienda/";	
+			$target = "_blank";
+        }
+		else{
+			$href = "?page=acui&tab=$tab";
+			$target = "_self";
 		}
-	}
-	</script>
-<?php
-	}
+
+		echo "<a class='nav-tab$class' href='$href' target='$target'>$name</a>";
+
+    }
+    echo '</h2>';
 }
 
 /**
@@ -389,75 +217,157 @@ function acui_options()
  *
  * @return none
  */
-function acui_fileupload_process($role) {
+function acui_fileupload_process( $form_data, $is_cron = false ) {
+  $path_to_file = $form_data["path_to_file"];
+  $role = $form_data["role"];
   $uploadfiles = $_FILES['uploadfiles'];
 
-  if (is_array($uploadfiles)) {
+  if( empty( $uploadfiles["name"][0] ) ):
+  	
+  	  if( !file_exists ( $path_to_file ) )
+  			wp_die( "Error, we cannot find the file: $path_to_file" ); 
 
-	foreach ($uploadfiles['name'] as $key => $value) {
+  	acui_import_users( $path_to_file, $form_data, 0, $is_cron );
 
-	  // look only for uploded files
-	  if ($uploadfiles['error'][$key] == 0) {
-		$filetmp = $uploadfiles['tmp_name'][$key];
+  else:
+  	 
+	  if ( is_array($uploadfiles) ) {
 
-		//clean filename and extract extension
-		$filename = $uploadfiles['name'][$key];
+		foreach ( $uploadfiles['name'] as $key => $value ) {
 
-		// get file info
-		// @fixme: wp checks the file extension....
-		$filetype = wp_check_filetype( basename( $filename ), array('csv' => 'text/csv') );
-		$filetitle = preg_replace('/\.[^.]+$/', '', basename( $filename ) );
-		$filename = $filetitle . '.' . $filetype['ext'];
-		$upload_dir = wp_upload_dir();
-		
-		if ($filetype['ext'] != "csv") {
-		  wp_die('File must be a CSV');
-		  return;
+		  // look only for uploded files
+		  if ($uploadfiles['error'][$key] == 0) {
+			$filetmp = $uploadfiles['tmp_name'][$key];
+
+			//clean filename and extract extension
+			$filename = $uploadfiles['name'][$key];
+
+			// get file info
+			// @fixme: wp checks the file extension....
+			$filetype = wp_check_filetype( basename( $filename ), array('csv' => 'text/csv') );
+			$filetitle = preg_replace('/\.[^.]+$/', '', basename( $filename ) );
+			$filename = $filetitle . '.' . $filetype['ext'];
+			$upload_dir = wp_upload_dir();
+			
+			if ($filetype['ext'] != "csv") {
+			  wp_die('File must be a CSV');
+			  return;
+			}
+
+			/**
+			 * Check if the filename already exist in the directory and rename the
+			 * file if necessary
+			 */
+			$i = 0;
+			while ( file_exists( $upload_dir['path'] .'/' . $filename ) ) {
+			  $filename = $filetitle . '_' . $i . '.' . $filetype['ext'];
+			  $i++;
+			}
+			$filedest = $upload_dir['path'] . '/' . $filename;
+
+			/**
+			 * Check write permissions
+			 */
+			if ( !is_writeable( $upload_dir['path'] ) ) {
+			  wp_die('Unable to write to directory. Is this directory writable by the server?');
+			  return;
+			}
+
+			/**
+			 * Save temporary file to uploads dir
+			 */
+			if ( !@move_uploaded_file($filetmp, $filedest) ){
+			  wp_die("Error, the file $filetmp could not moved to : $filedest ");
+			  continue;
+			}
+
+			$attachment = array(
+			  'post_mime_type' => $filetype['type'],
+			  'post_title' => $filetitle,
+			  'post_content' => '',
+			  'post_status' => 'inherit'
+			);
+
+			$attach_id = wp_insert_attachment( $attachment, $filedest );
+			require_once( ABSPATH . "wp-admin" . '/includes/image.php' );
+			$attach_data = wp_generate_attachment_metadata( $attach_id, $filedest );
+			wp_update_attachment_metadata( $attach_id,  $attach_data );
+			
+			acui_import_users( $filedest, $form_data, $attach_id, $is_cron );
+		  }
 		}
-
-		/**
-		 * Check if the filename already exist in the directory and rename the
-		 * file if necessary
-		 */
-		$i = 0;
-		while ( file_exists( $upload_dir['path'] .'/' . $filename ) ) {
-		  $filename = $filetitle . '_' . $i . '.' . $filetype['ext'];
-		  $i++;
-		}
-		$filedest = $upload_dir['path'] . '/' . $filename;
-
-		/**
-		 * Check write permissions
-		 */
-		if ( !is_writeable( $upload_dir['path'] ) ) {
-		  wp_die('Unable to write to directory. Is this directory writable by the server?');
-		  return;
-		}
-
-		/**
-		 * Save temporary file to uploads dir
-		 */
-		if ( !@move_uploaded_file($filetmp, $filedest) ){
-		  wp_die("Error, the file $filetmp could not moved to : $filedest ");
-		  continue;
-		}
-
-		$attachment = array(
-		  'post_mime_type' => $filetype['type'],
-		  'post_title' => $filetitle,
-		  'post_content' => '',
-		  'post_status' => 'inherit'
-		);
-
-		$attach_id = wp_insert_attachment( $attachment, $filedest );
-		require_once( ABSPATH . "wp-admin" . '/includes/image.php' );
-		$attach_data = wp_generate_attachment_metadata( $attach_id, $filedest );
-		wp_update_attachment_metadata( $attach_id,  $attach_data );
-		
-		acui_import_users($filedest, $role);
 	  }
+  endif;
+}
+
+function acui_save_mail_template( $form_data ){
+	update_option( "acui_mail_body", stripslashes( $form_data["body_mail"] ) );
+	update_option( "acui_mail_subject", stripslashes( $form_data["subject_mail"] ) );
+	?>
+	<div class="updated">
+       <p>Mail template updated correctly</p>
+    </div>
+    <?php
+}
+
+function acui_manage_cron_process( $form_data ){
+	$next_timestamp = wp_next_scheduled( 'acui_cron_process' );
+
+	if( isset( $form_data["cron-activated"] ) && $form_data["cron-activated"] == "yes" ){
+		update_option( "acui_cron_activated", true );
+
+			if( !$next_timestamp ) {
+				wp_schedule_event( time(), $form_data[ "period" ], 'acui_cron_process' );
+			}
 	}
-  }
+	else{
+		update_option( "acui_cron_activated", false );
+		wp_unschedule_event( $next_timestamp, 'acui_cron_process');		
+	}
+	
+	if( isset( $form_data["send-mail-cron"] ) && $form_data["send-mail-cron"] == "yes" )
+		update_option( "acui_send_mail_cron", true );
+	else
+		update_option( "acui_send_mail_cron", false );
+
+	if( isset( $form_data["send-mail-updated"] ) && $form_data["send-mail-updated"] == "yes" )
+		update_option( "acui_send_mail_updated", true );
+	else
+		update_option( "acui_send_mail_updated", false );
+
+	if( isset( $form_data["cron-delete-users"] ) && $form_data["cron-delete-users"] == "yes" )
+		update_option( "acui_cron_delete_users", true );
+	else
+		update_option( "acui_cron_delete_users", false );
+
+	update_option( "acui_cron_path_to_file", $form_data["path_to_file"] );
+	update_option( "acui_cron_period", $form_data["period"] );
+	update_option( "acui_cron_role", $form_data["role"] );
+
+	?>
+
+	<div class="updated">
+       <p>Settings updated correctly</p>
+    </div>
+    <?php
+}
+
+function acui_cron_process(){
+	$message = "Import cron task starts at " . date("Y-m-d H:i:s") . "<br/>";
+
+	$form_data = array();
+	$form_data[ "path_to_file" ] = get_option( "acui_cron_path_to_file");
+	$form_data[ "role" ] = get_option( "acui_cron_role");
+	$form_data[ "empty_cell_action" ] = "leave";
+
+	ob_start();
+	acui_fileupload_process( $form_data, true );
+	$message .= "<br/>" . ob_get_contents() . "<br/>";
+	ob_end_clean();	
+
+	$message .= "--Finished at " . date("Y-m-d H:i:s") . "<br/><br/>";	
+
+	update_option( "acui_cron_log", $message );
 }
 
 function acui_extra_user_profile_fields( $user ) {
@@ -465,10 +375,10 @@ function acui_extra_user_profile_fields( $user ) {
 	global $wp_min_fields;
 
 	$headers = get_option("acui_columns");
-	if(count($headers) > 0):
+	if( is_array($headers) && !empty($headers) ):
 ?>
-	<h3><?php _e("Extra profile information", "blank"); ?></h3>
-
+	<h3>Extra profile information</h3>
+	
 	<table class="form-table"><?php
 
 	foreach ($headers as $column):
@@ -487,30 +397,143 @@ function acui_extra_user_profile_fields( $user ) {
 }
 
 function acui_save_extra_user_profile_fields( $user_id ){
-	if (!current_user_can('edit_user', $user_id)) { return false; }
-
 	global $wp_users_fields;
 	global $wp_min_fields;
 	$headers = get_option("acui_columns");
 
-	if(count($headers) > 0):
+	$post_filtered = filter_input_array( INPUT_POST );
+
+	if( is_array($headers) && count($headers) > 0 ):
 		foreach ($headers as $column){
 			if(in_array($column, $wp_min_fields) || in_array($column, $wp_users_fields))
 				continue;
 
-			update_user_meta( $user_id, $column, $_POST[$column] );
+			$column_sanitized = str_replace(" ", "_", $column);
+			update_user_meta( $user_id, $column, $post_filtered[$column_sanitized] );
 		}
 	endif;
 }
+
+function acui_modify_user_edit_admin(){
+	global $pagenow;
+
+	if(in_array($pagenow, array("user-edit.php", "profile.php"))){
+    	$acui_columns = get_option("acui_columns");
+    	
+    	if(is_array($acui_columns) && !empty($acui_columns)){
+        	$new_columns = array();
+        	$core_fields = array(
+	            'username',
+	            'user_email',
+	            'first_name',
+	            'role',
+	            'last_name',
+	            'nickname',
+	            'display_name',
+	            'description',
+	            'billing_first_name',
+	            'billing_last_name',
+	            'billing_company',
+	            'billing_address_1',
+	            'billing_address_2',
+	            'billing_city',
+	            'billing_postcode',
+	            'billing_country',
+	            'billing_state',
+	            'billing_phone',
+	            'billing_email',
+	            'shipping_first_name',
+	            'shipping_last_name',
+	            'shipping_company',
+	            'shipping_address_1',
+	            'shipping_address_2',
+	            'shipping_city',
+	            'shipping_postcode',
+	            'shipping_country',
+	            'shipping_state'
+        	);
+        
+        	foreach ($acui_columns as $key => $column) {
+            	
+            	if(in_array($column, $core_fields)) {
+                	// error_log('removing column because core '.$column);
+                	continue;
+            	}
+            	if(in_array($column, $new_columns)) {
+                	// error_log('removing column because not unique '.$column);
+                	continue;
+                }
+            	
+            	array_push($new_columns, $column);
+        	}
+        	
+        	update_option("acui_columns", $new_columns);
+ 		}
+ 	}
+}
+
+function acui_delete_attachment() {
+	$attach_id = intval( $_POST['attach_id'] );
+
+	$result = wp_delete_attachment( $attach_id, true );
+
+	if( $result === false )
+		echo 0;
+	else
+		echo 1;
+
+	wp_die();
+}
+
+function acui_bulk_delete_attachment(){
+	$args_old_csv = array( 'post_type'=> 'attachment', 'post_mime_type' => 'text/csv', 'post_status' => 'inherit', 'posts_per_page' => -1 );
+	$old_csv_files = new WP_Query( $args_old_csv );
+	$result = 1;
+
+	while($old_csv_files->have_posts()) : 
+		$old_csv_files->the_post(); 
+
+		if( wp_delete_attachment( get_the_ID(), true ) === false )
+			$result = 0;
+	endwhile;
 	
-register_activation_hook(__FILE__,'acui_init'); 
+	wp_reset_postdata();
+
+	echo $result;
+
+	wp_die();
+}
+
+// wp-access-areas functions
+ function acui_set_cap_for_user( $capability , &$user , $add ) {
+	$has_cap = $user->has_cap( $capability );
+	$is_change = ($add && ! $has_cap) || (!$add && $has_cap);
+	if ( $is_change ) {
+		if ( $add ) {
+			$user->add_cap( $capability , true );
+			do_action( 'wpaa_grant_access' , $user , $capability );
+			do_action( "wpaa_grant_{$capability}" , $user );
+		} else if ( ! $add ) {
+			$user->remove_cap( $capability );
+			do_action( 'wpaa_revoke_access' , $user , $capability );
+			do_action( "wpaa_revoke_{$capability}" , $user );
+		}
+	}
+}
+	
+register_activation_hook( __FILE__,'acui_init' ); 
 register_deactivation_hook( __FILE__, 'acui_deactivate' );
-add_action("plugins_loaded", "acui_init");
-add_action("admin_menu", "acui_menu");
-add_action("show_user_profile", "acui_extra_user_profile_fields");
-add_action("edit_user_profile", "acui_extra_user_profile_fields");
-add_action("personal_options_update", "acui_save_extra_user_profile_fields");
-add_action("edit_user_profile_update", "acui_save_extra_user_profile_fields");
+add_action( "plugins_loaded", "acui_init" );
+add_action( "admin_menu", "acui_menu" );
+add_filter( 'plugin_row_meta', 'acui_plugin_row_meta', 10, 2 );
+add_action( 'admin_init', 'acui_modify_user_edit_admin' );
+add_action( "show_user_profile", "acui_extra_user_profile_fields" );
+add_action( "edit_user_profile", "acui_extra_user_profile_fields" );
+add_action( "personal_options_update", "acui_save_extra_user_profile_fields" );
+add_action( "edit_user_profile_update", "acui_save_extra_user_profile_fields" );
+add_action( 'wp_ajax_acui_delete_attachment', 'acui_delete_attachment' );
+add_action( 'wp_ajax_acui_bulk_delete_attachment', 'acui_bulk_delete_attachment' );
+add_action( 'acui_cron_process', 'acui_cron_process' );
 
 // misc
 if (!function_exists('str_getcsv')) { 
@@ -569,3 +592,9 @@ if (!function_exists('str_getcsv')) {
         } 
     } 
 } 
+
+if (!function_exists('set_html_content_type')) { 
+	function set_html_content_type() {
+		return 'text/html';
+	}
+}
