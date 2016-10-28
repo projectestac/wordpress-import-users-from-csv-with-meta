@@ -46,15 +46,25 @@ function acui_smtp() {
 		// Start output buffering to grab smtp debugging output
 		ob_start();
 
+		if( !get_option('acui_automattic_wordpress_email') ){
+			add_filter( 'send_email_change_email', '__return_false' );
+			add_filter( 'send_password_change_email', '__return_false' );
+		}
+
 		add_filter( 'wp_mail_from', 'acui_mail_from' );
 		add_filter( 'wp_mail_from_name', 'acui_mail_from_name' );
-		add_filter( 'wp_mail_content_type', 'set_html_content_type' );
+		add_filter( 'wp_mail_content_type', 'cod_set_html_content_type' );
 						
 		$result = wp_mail( $to, $subject , $message );
 
 		remove_filter( 'wp_mail_from', 'acui_mail_from' );
 		remove_filter( 'wp_mail_from_name', 'acui_mail_from_name' );
-		remove_filter( 'wp_mail_content_type', 'set_html_content_type' );
+		remove_filter( 'wp_mail_content_type', 'cod_set_html_content_type' );
+
+		if( !get_option('acui_automattic_wordpress_email') ){
+			remove_filter( 'send_email_change_email', '__return_false' );
+			remove_filter( 'send_password_change_email', '__return_false' );
+		}
 		
 		// Strip out the language strings which confuse users
 		//unset($phpmailer->language);

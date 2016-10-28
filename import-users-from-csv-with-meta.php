@@ -4,14 +4,14 @@ Plugin Name: Import users from CSV with meta
 Plugin URI: http://www.codection.com
 Description: This plugins allows to import users using CSV files to WP database automatically
 Author: codection
-Version: 1.8.7.2
+Version: 1.9.8.1
 Author URI: http://codection.com
 */
 
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
-$url_plugin = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__), "", plugin_basename(__FILE__));
-$wp_users_fields = array("user_nicename", "user_url", "display_name", "nickname", "first_name", "last_name", "description", "jabber", "aim", "yim", "user_registered", "password");
+$url_plugin = WP_PLUGIN_URL . '/' . str_replace( basename( __FILE__ ), "", plugin_basename( __FILE__ ) );
+$wp_users_fields = array( "id", "user_nicename", "user_url", "display_name", "nickname", "first_name", "last_name", "description", "jabber", "aim", "yim", "user_registered", "password", "user_pass" );
 $wp_min_fields = array("Username", "Email");
 
 include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -57,6 +57,7 @@ function acui_activate(){
 	add_option( "acui_cron_period" );
 	add_option( "acui_cron_role" );
 	add_option( "acui_cron_log" );
+	add_option( "acui_automattic_wordpress_email" );
 
 	// smtp
 	foreach ( $acui_smtp_options as $name => $val ) {
@@ -80,6 +81,7 @@ function acui_deactivate(){
 	delete_option( "acui_cron_period" );
 	delete_option( "acui_cron_role" );
 	delete_option( "acui_cron_log" );
+	delete_option( "acui_automattic_wordpress_email" );
 
 	wp_clear_scheduled_hook( 'acui_cron' );
 
@@ -154,6 +156,13 @@ function acui_mail_from_name(){
 	return get_option( "acui_mail_from_name" );
 }
 
+function acui_user_id_exists( $user_id ){
+	if ( get_userdata( $user_id ) === false )
+	    return false;
+	else
+	    return true;
+}
+
 function acui_get_roles($user_id){
 	$roles = array();
 	$user = new WP_User( $user_id );
@@ -188,7 +197,7 @@ function acui_check_options(){
 }
 
 function acui_admin_tabs( $current = 'homepage' ) {
-    $tabs = array( 'homepage' => 'Import users from CSV', 'columns' => 'Customs columns loaded', 'mail-template' => 'Mail template', 'doc' => 'Documentation', 'cron' => 'Cron import', 'donate' => 'Donate', 'shop' => 'Shop', 'help' => 'Hire an expert' );
+    $tabs = array( 'homepage' => 'Import users from CSV', 'columns' => 'Customs columns loaded', 'mail-options' => 'Mail options', 'doc' => 'Documentation', 'cron' => 'Cron import', 'donate' => 'Donate', 'shop' => 'Shop', 'help' => 'Hire an expert' );
     echo '<div id="icon-themes" class="icon32"><br></div>';
     echo '<h2 class="nav-tab-wrapper">';
     foreach( $tabs as $tab => $name ){
@@ -212,12 +221,15 @@ function acui_admin_tabs( $current = 'homepage' ) {
 /**
  * Handle file uploads
  *
- * @todo check nonces
  * @todo check file size
  *
  * @return none
  */
 function acui_fileupload_process( $form_data, $is_cron = false ) {
+  if ( !$is_cron && ( ! isset( $_POST['acui-nonce'] ) || ! wp_verify_nonce( $_POST['acui-nonce'], 'acui-import' ) ) ){
+	wp_die( 'Nonce problem' );
+  }
+
   $path_to_file = $form_data["path_to_file"];
   $role = $form_data["role"];
   $uploadfiles = $_FILES['uploadfiles'];
@@ -301,6 +313,7 @@ function acui_fileupload_process( $form_data, $is_cron = false ) {
 }
 
 function acui_save_mail_template( $form_data ){
+	update_option( "acui_automattic_wordpress_email", stripslashes( $form_data["automattic_wordpress_email"] ) );
 	update_option( "acui_mail_body", stripslashes( $form_data["body_mail"] ) );
 	update_option( "acui_mail_subject", stripslashes( $form_data["subject_mail"] ) );
 	?>
@@ -340,10 +353,15 @@ function acui_manage_cron_process( $form_data ){
 	else
 		update_option( "acui_cron_delete_users", false );
 
+	if( isset( $form_data["move-file-cron"] ) && $form_data["move-file-cron"] == "yes" )
+		update_option( "acui_move_file_cron", true );
+	else
+		update_option( "acui_move_file_cron", false );
+
 	update_option( "acui_cron_path_to_file", $form_data["path_to_file"] );
+	update_option( "acui_cron_path_to_move", $form_data["path_to_move"] );
 	update_option( "acui_cron_period", $form_data["period"] );
 	update_option( "acui_cron_role", $form_data["role"] );
-
 	?>
 
 	<div class="updated">
@@ -363,7 +381,16 @@ function acui_cron_process(){
 	ob_start();
 	acui_fileupload_process( $form_data, true );
 	$message .= "<br/>" . ob_get_contents() . "<br/>";
-	ob_end_clean();	
+	ob_end_clean();
+
+	$move_file_cron = get_option( "acui_move_file_cron");
+	
+	if( $move_file_cron ){
+		$path_to_file = get_option( "acui_cron_path_to_file");
+		$path_to_move = get_option( "acui_cron_path_to_move");
+
+		rename( $path_to_file, $path_to_move );
+	}
 
 	$message .= "--Finished at " . date("Y-m-d H:i:s") . "<br/><br/>";	
 
@@ -473,6 +500,9 @@ function acui_modify_user_edit_admin(){
 }
 
 function acui_delete_attachment() {
+	if( ! current_user_can( 'manage_options' ) )
+		wp_die( "You are not an adminstrator" );
+
 	$attach_id = intval( $_POST['attach_id'] );
 
 	$result = wp_delete_attachment( $attach_id, true );
@@ -593,8 +623,6 @@ if (!function_exists('str_getcsv')) {
     } 
 } 
 
-if (!function_exists('set_html_content_type')) { 
-	function set_html_content_type() {
-		return 'text/html';
-	}
+function cod_set_html_content_type() {
+	return 'text/html';
 }
