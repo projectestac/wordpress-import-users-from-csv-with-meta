@@ -3,8 +3,8 @@ Contributors: hornero, carazo
 Donate link: http://paypal.me/codection
 Tags: csv, import, importer, meta data, meta, user, users, user meta,  editor, profile, custom, fields, delimiter, update, insert
 Requires at least: 3.4
-Tested up to: 4.4.2
-Stable tag: 1.8.7.2
+Tested up to: 4.6
+Stable tag: 1.9.8.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,70 @@ Plugin will automatically detect:
 
 
 == Changelog ==
+
+= 1.9.8.1 =
+*	Bug fixed in cron import, nonce conditional check, thanks to Ville Kokkala for showing the bug
+
+= 1.9.8 =
+*	Password reset url is now available to include in body email thanks to Mary Wheeler (https://wordpress.org/support/users/ransim/)
+
+= 1.9.7 =
+*	Thanks to Bruce MacPherson we can now choose if we don't want update users roles when importing data if user exist
+*	Clearer English thanks to Bruce MacPherson
+
+= 1.9.6 =
+*	Thanks to Jason Lewis we can now choose if we don't want update users when importing data if user exist
+
+= 1.9.5 =
+*	Important security fixes added thanks to pluginvulnerabilities.com
+
+= 1.9.4.6 =
+*	New filter added, thanks to @burton-nerd
+
+= 1.9.4.5 =
+*	Renamed function to avoid collisions thanks to the message of Jason Lewis
+
+= 1.9.4.4 =
+*	Fix for the last one, we set true where it was false and vice versa
+
+= 1.9.4.3 =
+*	We try to make it clear to choose if mails (the one we talked in 1.9.4.2) are being sent or not
+
+= 1.9.4.2 =
+*	Automatic WordPress emails sending deactivated by default when user is created or updated, thanks to Peter Gariepy
+
+= 1.9.4.1 =
+*	wpautop added again
+
+= 1.9.4 =
+*	user_pass can be imported directly hashed thanks to Bad Yogi
+
+= 1.9.3 =
+*	Now you can move file after cron, thanks to Yme Brugts for supporting this new feature
+
+= 1.9.2 =
+*	New hook added, thanks to borkenkaefer
+
+= 1.9.1 =
+*	Fix new feature thanks to bixul ( https://wordpress.org/support/topic/problems-with-user-xxx-error-invalid-user-id?replies=3#post-8572766 )
+
+= 1.9 =
+*	New feature thanks to Ken Hagen - V3 Insurance Partners LLC, now you can import users directly with his ID or update it using his user ID, please read documentation tab for more information about it
+*	New hooks added thank to the idea of borkenkaefer, in the future we will include more and better hooks (actions and filters)
+*	Compatibility with New User Approve fixed
+
+= 1.8.9 =
+*	Lost password link included in the mail template thanks to alex@marckdesign.net
+
+= 1.8.8 =
+*	Checkbox included in order to avoid sending mail accidentally on password change or user updated.
+
+= 1.8.7.4 =
+*	Documentation updated.
+
+= 1.8.7.3 =
+*	Autoparagraph in email text to solve problem about all text in the same line.
+*	Tested up to 4.5.1
 
 = 1.8.7.2 =
 *	Bug in delete_user_meta solved thanks for telling us lizzy2surge
