@@ -57,8 +57,8 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 			else
 				$approve_users_new_user_appove = $form_data["approve_users_new_user_appove"];
 	
-			echo "<h3>Ready to registers</h3>";
-			echo "<p>First row represents the form of sheet</p>";
+			echo "<h3>" . __('Ready to registers','import-users-from-csv-with-meta') . "</h3>";
+			echo "<p>" . __('First row represents the form of sheet','import-users-from-csv-with-meta') . "</p>";
 			$row = 0;
 			$positions = array();
 
@@ -85,7 +85,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 				if($row == 0):
 					// check min columns username - email
 					if(count( $data ) < 2){
-						echo "<div id='message' class='error'>File must contain at least 2 columns: username and email</div>";
+						echo "<div id='message' class='error'>" . __( 'File must contain at least 2 columns: username and email', 'import-users-from-csv-with-meta' ) . "</div>";
 						break;
 					}
 
@@ -113,14 +113,14 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 
 					update_option( "acui_columns", $headers_filtered );
 					?>
-					<h3>Inserting and updating data</h3>
+					<h3><?php _e( 'Inserting and updating data', 'import-users-from-csv-with-meta' ); ?></h3>
 					<table>
-						<tr><th>Row</th><?php foreach( $headers as $element ) echo "<th>" . $element . "</th>"; ?></tr>
+						<tr><th><?php _e( 'Row', 'import-users-from-csv-with-meta' ); ?></th><?php foreach( $headers as $element ) echo "<th>" . $element . "</th>"; ?></tr>
 					<?php
 					$row++;
 				else:
 					if( count( $data ) != $columns ): // if number of columns is not the same that columns in header
-						echo '<script>alert("Row number: ' . $row . ' has no the same columns than header, we are going to skip");</script>';
+						echo '<script>alert("' . __( 'Row number', 'import-users-from-csv-with-meta' ) . " $row " . __( 'does not have the same columns than the header, we are going to skip', 'import-users-from-csv-with-meta') . '");</script>';
 						continue;
 					endif;
 
@@ -171,7 +171,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 								$created = false;
 							}
 							else{
-								echo '<script>alert("Problems with ID: ' . $id . ', username is not the same in the CSV and in database, we are going to skip.");</script>';
+								echo '<script>alert("' . __( 'Problems with ID', 'import-users-from-csv-with-meta' ) . ": $id , " . __( 'username is not the same in the CSV and in database, we are going to skip.', 'import-users-from-csv-with-meta' ) . '");</script>';
 								continue;
 							}
 
@@ -219,7 +219,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 	                    $user_object = get_user_by( "email", $email );
 	                    $user_id = $user_object->ID;
 	                    
-	                    $data[0] = "User already exists as: " . $user_object->user_login . "<br/>(in this CSV file is called: " . $username . ")";
+	                    $data[0] = __( 'User already exists as:', 'import-users-from-csv-with-meta' ) . $user_object->user_login . '<br/>' . __( '(in this CSV file is called:', 'import-users-from-csv-with-meta' ) . $username . ")";
 	                    $problematic_row = true;
 
 	                    if( !empty($password) )
@@ -245,7 +245,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 						
 					if( is_wp_error( $user_id ) ){ // in case the user is generating errors after this checks
 						$error_string = $user_id->get_error_message();
-						echo '<script>alert("Problems with user: ' . $username . ', we are going to skip. \r\nError: ' . $error_string . '");</script>';
+						echo '<script>alert("' . __( 'Problems with user:', 'import-users-from-csv-with-meta' ) . $username . __( ', we are going to skip. \r\nError: ', 'import-users-from-csv-with-meta') . $error_string . '");</script>';
 						continue;
 					}
 
@@ -365,7 +365,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 						$body_mail = str_replace( "**passwordreseturl**", network_site_url( 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user_login ), 'login' ), $body_mail );
 						
 						if( empty( $password ) && !$created ) 
-							$password = "Password has not been changed";
+							$password = __( 'Password has not been changed', 'import-users-from-csv-with-meta' );
 
 						$body_mail = str_replace("**password**", $password, $body_mail);
 						$body_mail = str_replace("**email**", $email, $body_mail);
@@ -434,7 +434,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 			?>
 			</table>
 			<br/>
-			<p>Process finished you can go <a href="<?php echo get_admin_url() . '/users.php'; ?>">here to see results</a></p>
+			<p><?php _e( 'Process finished you can go', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo get_admin_url() . '/users.php'; ?>"><?php _e( 'here to see results', 'import-users-from-csv-with-meta' ); ?></a></p>
 			<?php
 			ini_set('auto_detect_line_endings',FALSE);
 			
@@ -449,7 +449,7 @@ function acui_options()
 	global $url_plugin;
 
 	if ( !current_user_can('create_users') ) {
-		wp_die(__('You are not allowed to see this content.'));
+		wp_die( __( 'You are not allowed to see this content.', 'import-users-from-csv-with-meta' ));
 	}
 
 	if ( isset ( $_GET['tab'] ) ) 
@@ -495,15 +495,15 @@ function acui_options()
 
 		<?php if( $old_csv_files->found_posts > 0 ): ?>
 		<div class="postbox">
-		    <div title="Click to open/close" class="handlediv">
+		    <div title="<?php _e( 'Click to open/close', 'import-users-from-csv-with-meta' ); ?>" class="handlediv">
 		      <br>
 		    </div>
 
-		    <h3 class="hndle"><span>&nbsp;Old CSV files uploaded</span></h3>
+		    <h3 class="hndle"><span>&nbsp;<?php _e( 'Old CSV files uploaded', 'import-users-from-csv-with-meta' ); ?></span></h3>
 
 		    <div class="inside" style="display: block;">
-		    	<p>For security reasons you should delete this files, probably they would be visible in the Internet if a bot or someone discover the URL. You can delete each file or maybe you want delete all CSV files you have uploaded:</p>
-		    	<input type="button" value="Delete all CSV files uploaded" id="bulk_delete_attachment" style="float:right;"></input>
+		    	<p><?php _e( 'For security reasons you should delete this files, probably they would be visible in the Internet if a bot or someone discover the URL. You can delete each file or maybe you want delete all CSV files you have uploaded:', 'import-users-from-csv-with-meta' ); ?></p>
+		    	<input type="button" value="<?php _e( 'Delete all CSV files uploaded', 'import-users-from-csv-with-meta' ); ?>" id="bulk_delete_attachment" style="float:right;" />
 		    	<ul>
 		    		<?php while($old_csv_files->have_posts()) : 
 		    			$old_csv_files->the_post(); 
@@ -513,7 +513,7 @@ function acui_options()
 		    			else
 		    				$date = get_the_date();
 		    		?>
-		    		<li><a href="<?php echo wp_get_attachment_url( get_the_ID() ); ?>"><?php the_title(); ?></a> uploaded the <?php echo $date; ?> <input type="button" value="Delete" class="delete_attachment" attach_id="<?php the_ID(); ?>"></input></li>
+		    		<li><a href="<?php echo wp_get_attachment_url( get_the_ID() ); ?>"><?php the_title(); ?></a> _e( 'uploaded on', 'import-users-from-csv-with-meta' ) . ' ' . <?php echo $date; ?> <input type="button" value="<?php _e( 'Delete', 'import-users-from-csv-with-meta' ); ?>" class="delete_attachment" attach_id="<?php the_ID(); ?>" /></li>
 		    		<?php endwhile; ?>
 		    		<?php wp_reset_postdata(); ?>
 		    	</ul>
@@ -522,11 +522,11 @@ function acui_options()
 		</div>
 		<?php endif; ?>	
 
-		<div id='message' class='updated'>File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. If there are more columns, this plugin will manage it automatically.</div>
-		<div id='message-password' class='error'>Please, read carefully how <strong>passwords are managed</strong> and also take note about capitalization, this plugin is <strong>case sensitive</strong>.</div>
+		<div id='message' class='updated'><?php _e( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ); ?></div>
+		<div id='message-password' class='error'><?php _e( 'Please, read carefully how <strong>passwords are managed</strong> and also take note about capitalization, this plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></div>
 
 		<div style="float:left; width:80%;">
-			<h2>Import users from CSV</h2>
+			<h2><?php _e( 'Import users from CSV','import-users-from-csv-with-meta' ); ?></h2>
 		</div>
 
 		<div style="clear:both;"></div>
@@ -536,17 +536,17 @@ function acui_options()
 			<table class="form-table">
 				<tbody>
 				<tr class="form-field form-required">
-					<th scope="row"><label>Update existing users?</label></th>
+					<th scope="row"><label><?php _e( 'Update existing users?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<select name="update_existing_users">
-							<option value="yes">Yes</option>
-							<option value="no">No</option>							
+							<option value="yes"><?php _e( 'Yes', 'import-users-from-csv-with-meta' ); ?></option>
+							<option value="no"><?php _e( 'No', 'import-users-from-csv-with-meta' ); ?></option>
 						</select>
 					</td>
 				</tr>
 
 				<tr class="form-field">
-					<th scope="row"><label for="role">Role</label></th>
+					<th scope="row"><label for="role"><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 					<?php 
 						$list_roles = acui_get_editable_roles(); 
@@ -559,40 +559,40 @@ function acui_options()
 						}
 					?>
 
-					<p class="description">If you choose more than one role, the roles would be assigned correctly but you should use some plugin like <a href="https://wordpress.org/plugins/user-role-editor/">User Role Editor</a> to manage them.</p>
+					<p class="description"><?php _e( 'If you choose more than one role, the roles would be assigned correctly but you should use some plugin like <a href="https://wordpress.org/plugins/user-role-editor/">User Role Editor</a> to manage them.', 'import-users-from-csv-with-meta' ); ?></p>
 					</td>
 				</tr>
 
 				<tr class="form-field form-required">
-					<th scope="row"><label>Update roles for existing users?</label></th>
+					<th scope="row"><label><?php _e( 'Update roles for existing users?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<select name="update_roles_existing_users">
-							<option value="no">No</option>
-							<option value="yes">Yes</option>							
+							<option value="no"><?php _e( 'No', 'import-users-from-csv-with-meta' ); ?></option>
+							<option value="yes"><?php _e( 'Yes', 'import-users-from-csv-with-meta' ); ?></option>
 						</select>
 					</td>
 				</tr>
 
 				<tr class="form-field form-required">
-					<th scope="row"><label>CSV file <span class="description">(required)</span></label></th>
+					<th scope="row"><label><?php _e( 'CSV file <span class="description">(required)</span></label>', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
 						<div id="upload_file">
 							<input type="file" name="uploadfiles[]" id="uploadfiles" size="35" class="uploadfiles" />
-							<em>or you can choose directly a file from your host, <a href="#" class="toggle_upload_path">click here</a>.</em>
+							<?php _e( '<em>or you can choose directly a file from your host,', 'import-users-from-csv-with-meta' ) ?> <a href="#" class="toggle_upload_path"><?php _e( 'click here', 'import-users-from-csv-with-meta' ) ?></a>.</em>
 						</div>
 						<div id="introduce_path" style="display:none;">
-							<input placeholder="You have to introduce the path to file, i.e.: <?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/test.csv" type="text" name="path_to_file" id="path_to_file" value="<?php echo dirname( __FILE__ ); ?>/test.csv" style="width:70%;" />
-							<em>or you can upload it directly from your PC, <a href="#" class="toggle_upload_path">click here</a>.</em>
+							<input placeholder="<?php _e( 'You have to introduce the path to file, i.e.:' ,'import-users-from-csv-with-meta' ); ?><?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/test.csv" type="text" name="path_to_file" id="path_to_file" value="<?php echo dirname( __FILE__ ); ?>/test.csv" style="width:70%;" />
+							<em><?php _e( 'or you can upload it directly from your PC', 'import-users-from-csv-with-meta' ); ?>, <a href="#" class="toggle_upload_path"><?php _e( 'click here', 'import-users-from-csv-with-meta' ); ?></a>.</em>
 						</div>
 					</td>
 				</tr>
 
 				<tr class="form-field form-required">
-					<th scope="row"><label>What should the plugin do with empty cells?</label></th>
+					<th scope="row"><label><?php _e( 'What should the plugin do with empty cells?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<select name="empty_cell_action">
-							<option value="leave">Leave the old value for this metadata</option>
-							<option value="delete">Delete the metadata</option>							
+							<option value="leave"><?php _e( 'Leave the old value for this metadata', 'import-users-from-csv-with-meta' ); ?></option>
+							<option value="delete"><?php _e( 'Delete the metadata', 'import-users-from-csv-with-meta' ); ?></option>
 						</select>
 					</td>
 				</tr>
@@ -618,14 +618,14 @@ function acui_options()
 				?>
 
 				<tr class="form-field form-required">
-					<th scope="row"><label>BuddyPress users</label></th>
-					<td>You can insert any profile from BuddyPress using his name as header. Plugin will check, before import, which fields are defined in BuddyPress and will assign it in the update. You can use this fields:
+					<th scope="row"><label><?php _e( 'BuddyPress users', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td><?php _e( 'You can insert any profile from BuddyPress using his name as header. Plugin will check, before import, which fields are defined in BuddyPress and will assign it in the update. You can use this fields:', 'import-users-from-csv-with-meta' ); ?>
 					<ul style="list-style:disc outside none;margin-left:2em;">
 						<?php foreach ($buddypress_fields as $buddypress_field ): ?><li><?php echo $buddypress_field; ?></li><?php endforeach; ?>
 					</ul>
-					Remember that all date fields have to be imported using a format like this: 2016-01-01 00:00:00
+					<?php _e( 'Remember that all date fields have to be imported using a format like this: 2016-01-01 00:00:00', 'import-users-from-csv-with-meta' ); ?>
 
-					<p class="description"><strong>(Only for <a href="https://wordpress.org/plugins/buddypress/">BuddyPress</a> users)</strong>.</p>
+					<p class="description"><strong>(<?php _e( 'Only for', 'import-users-from-csv-with-meta' ); ?> <a href="https://wordpress.org/plugins/buddypress/">BuddyPress</a> <?php _e( 'users', 'import-users-from-csv-with-meta' ); ?></strong>.)</p>
 					</td>					
 				</tr>
 
@@ -637,11 +637,11 @@ function acui_options()
 					<th scope="row"><label>Y</label></th>
 					<td>
 						<select name="activate_users_wp_members">
-							<option value="no_activate">Do not activate users</option>
-							<option value="activate">Activate users when they are being imported</option>
+							<option value="no_activate"><?php _e( 'Do not activate users', 'import-users-from-csv-with-meta' ); ?></option>
+							<option value="activate"><?php _e( 'Activate users when they are being imported', 'import-users-from-csv-with-meta' ); ?></option>
 						</select>
 
-						<p class="description"><strong>(Only for <a href="https://wordpress.org/plugins/wp-members/">WP Members</a> users)</strong>.</p>
+						<p class="description"><strong>(<?php _e( 'Only for', 'import-users-from-csv-with-meta' ); ?> <a href="https://wordpress.org/plugins/wp-members/"><?php _e( 'WP Members', 'import-users-from-csv-with-meta' ); ?></a> <?php _e( 'users', 'import-users-from-csv-with-meta' ); ?>)</strong>.</p>
 					</td>
 					
 				</tr>
@@ -651,14 +651,14 @@ function acui_options()
 				<?php if( is_plugin_active( 'new-user-approve/new-user-approve.php' ) ): ?>
 
 				<tr class="form-field form-required">
-					<th scope="row"><label>Approve users at the same time is being created</label></th>
+					<th scope="row"><label><?php _e( 'Approve users at the same time is being created', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<select name="approve_users_new_user_appove">
-							<option value="no_approve">Do not approve users</option>
-							<option value="approve">Approve users when they are being imported</option>
+							<option value="no_approve"><?php _e( 'Do not approve users', 'import-users-from-csv-with-meta' ); ?></option>
+							<option value="approve"><?php _e( 'Approve users when they are being imported', 'import-users-from-csv-with-meta' ); ?></option>
 						</select>
 
-						<p class="description"><strong>(Only for <a href="https://es.wordpress.org/plugins/new-user-approve/">New User Approve</a> users)</strong>.</p>
+						<p class="description"><strong>(<?php _e( 'Only for', 'import-users-from-csv-with-meta' ); ?> <a href="https://es.wordpress.org/plugins/new-user-approve/"><?php _e( 'New User Approve', 'import-users-from-csv-with-meta' ); ?></a> <?php _e( 'users', 'import-users-from-csv-with-meta' ); ?></strong>.</p>
 					</td>
 					
 				</tr>
@@ -668,13 +668,13 @@ function acui_options()
 				<?php if( is_plugin_active( 'allow-multiple-accounts/allow-multiple-accounts.php' ) ): ?>
 
 				<tr class="form-field form-required">
-					<th scope="row"><label>Repeated email in different users?</label></th>
+					<th scope="row"><label><?php _e( 'Repeated email in different users?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<select name="allow_multiple_accounts">
-							<option value="not_allowed">Not allowed</option>
-							<option value="allowed">Allowed</option>
+							<option value="not_allowed"><?php _e( 'Not allowed', 'import-users-from-csv-with-meta' ); ?></option>
+							<option value="allowed"><?php _e( 'Allowed', 'import-users-from-csv-with-meta' ); ?></option>
 						</select>
-						<p class="description"><strong>(Only for <a href="https://wordpress.org/plugins/allow-multiple-accounts/">Allow Multiple Accounts</a> users)</strong>. Allow multiple user accounts to be created having the same email address.</p>
+						<p class="description"><strong>(<?php _e( 'Only for', 'import-users-from-csv-with-meta' ); ?> <a href="https://wordpress.org/plugins/allow-multiple-accounts/"><?php _e( 'Allow Multiple Accounts', 'import-users-from-csv-with-meta' ); ?></a> <?php _e( 'users', 'import-users-from-csv-with-meta'); ?>)</strong>. <?php _e('Allow multiple user accounts to be created having the same email address.','import-users-from-csv-with-meta' ); ?></p>
 					</td>
 				</tr>
 
@@ -683,9 +683,9 @@ function acui_options()
 				<?php if( is_plugin_active( 'wp-access-areas/wp-access-areas.php' ) ): ?>
 
 				<tr class="form-field form-required">
-					<th scope="row"><label>WordPress Access Areas is activated</label></th>
+					<th scope="row"><label><?php _e('WordPress Access Areas is activated','import-users-from-csv-with-meta'); ?></label></th>
 					<td>
-						<p class="description">As user of <a href="https://wordpress.org/plugins/wp-access-areas/">WordPress Access Areas</a> you can use the Access Areas created <a href="<?php echo admin_url( 'users.php?page=user_labels' ); ?>">here</a> and use this areas in your own CSV file. Please use the column name <strong>wp-access-areas</strong> and in each row use <strong>the name that you have used <a href="<?php echo admin_url( 'users.php?page=user_labels' ); ?>">here</a></strong>, like this ones:</p>
+						<p class="description"><?php _e('As user of','import-users-from-csv-with-meta' ); ?> <a href="https://wordpress.org/plugins/wp-access-areas/"><?php _e( 'WordPress Access Areas', 'import-users-from-csv-with-meta' )?></a> <?php _e( 'you can use the Access Areas created', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo admin_url( 'users.php?page=user_labels' ); ?>"><?php _e( 'here', 'import-users-from-csv-with-meta' ); ?></a> <?php _e( 'and use this areas in your own CSV file. Please use the column name <strong>wp-access-areas</strong> and in each row use <strong>the name that you have used', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo admin_url( 'users.php?page=user_labels' ); ?>"><?php _e( 'here', 'import-users-from-csv-with-meta' ); ?></a></strong><?php _e( ', like this ones:', 'import-users-from-csv-with-meta' ); ?></p>
 						<ol>
 							<?php 
 								$data = WPAA_AccessArea::get_available_userlabels( '0,5' , NULL ); 								
@@ -694,17 +694,17 @@ function acui_options()
 							<?php endforeach; ?>
 
 						</ol>
-						<p class="description">If you leave this cell empty for some user or the access area indicated doesn't exist, user won't be assigned to any access area. You can choose more than one area for each user using pads between them in the same row, i.e.: access_area1#accces_area2</p>
+						<p class="description"><?php _e( "If you leave this cell empty for some user or the access area indicated doesn't exist, user won't be assigned to any access area. You can choose more than one area for each user using pads between them in the same row, i.e.: ", 'import-users-from-csv-with-meta' ) ?>access_area1#accces_area2</p>
 					</td>
 				</tr>
 
 				<?php endif; ?>
 
 				<tr class="form-field">
-					<th scope="row"><label for="user_login">Send mail</label></th>
+					<th scope="row"><label for="user_login"><?php _e( 'Send mail', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<p>Do you wish to send a mail with credentials and other data? <input type="checkbox" name="sends_email" value = "yes"></p>
-						<p>Do you wish to send this mail also to users that are being updated? (not only to the one which are being created) <input type="checkbox" name="send_email_updated" value = "yes" checked="checked"></p>
+						<p><?php _e( 'Do you wish to send a mail with credentials and other data?', 'import-users-from-csv-with-meta' ); ?> <input type="checkbox" name="sends_email" value = "<?php _e('yes','import-users-from-csv-with-meta'); ?>"></p>
+						<p><?php _e( 'Do you wish to send this mail also to users that are being updated? (not only to the one which are being created)', 'import-users-from-csv-with-meta' ); ?> <input type="checkbox" name="send_email_updated" value = "<?php _e( 'yes', 'import-users-from-csv-with-meta' ); ?>" checked="checked"></p>
 					</td>
 				</tr>
 				</tbody>
@@ -712,7 +712,7 @@ function acui_options()
 
 			<?php wp_nonce_field( 'acui-import', 'acui-nonce' ); ?>
 
-			<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn" value="Start importing"/>
+			<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
 			</form>
 		</div>
 
@@ -720,24 +720,24 @@ function acui_options()
 	<script type="text/javascript">
 	function check(){
 		if(document.getElementById("uploadfiles").value == "" && jQuery( "#upload_file" ).is(":visible") ) {
-		   alert("Please choose a file");
+		   alert("<?php _e( 'Please choose a file', 'import-users-from-csv-with-meta' ); ?>");
 		   return false;
 		}
 
 		if( jQuery( "#path_to_file" ).val() == "" && jQuery( "#introduce_path" ).is(":visible") ) {
-		   alert("Please enter a path to the file");
+		   alert("<?php _e( 'Please enter a path to the file', 'import-users-from-csv-with-meta' ); ?>");
 		   return false;
 		}
 
 		if( jQuery("[name=role\\[\\]]input:checkbox:checked").length == 0 ){
-			alert("Please select a role");
+			alert("<?php _e( 'Please select a role', 'import-users-from-csv-with-meta'); ?>");
 		   	return false;	
 		}
 	}
 
 	jQuery( document ).ready( function( $ ){
 		$( ".delete_attachment" ).click( function(){
-			var answer = confirm( "Are you sure to delete this file?" );
+			var answer = confirm( "<?php _e( 'Are you sure to delete this file?', 'import-users-from-csv-with-meta' ); ?>" );
 			if( answer ){
 				var data = {
 					'action': 'acui_delete_attachment',
@@ -746,9 +746,9 @@ function acui_options()
 
 				$.post(ajaxurl, data, function(response) {
 					if( response != 1 )
-						alert( "There were problems deleting the file, please check file permissions" );
+						alert( "<?php _e( 'There were problems deleting the file, please check file permissions', 'import-users-from-csv-with-meta' ); ?>" );
 					else{
-						alert( "File successfully deleted" );
+						alert( "<?php _e( 'File successfully deleted', 'import-users-from-csv-with-meta' ); ?>" );
 						document.location.reload();
 					}
 				});
@@ -756,7 +756,7 @@ function acui_options()
 		});
 
 		$( "#bulk_delete_attachment" ).click( function(){
-			var answer = confirm( "Are you sure to delete ALL CSV files uploaded? There can be CSV files from other plugins." );
+			var answer = confirm( "<?php _e( 'Are you sure to delete ALL CSV files uploaded? There can be CSV files from other plugins.', 'import-users-from-csv-with-meta' ); ?>" );
 			if( answer ){
 				var data = {
 					'action': 'acui_bulk_delete_attachment',
@@ -764,9 +764,9 @@ function acui_options()
 
 				$.post(ajaxurl, data, function(response) {
 					if( response != 1 )
-						alert( "There were problems deleting the files, please check files permissions" );
+						alert( "<?php _e( 'There were problems deleting the files, please check files permissions', 'import-users-from-csv-with-meta' ); ?>" );
 					else{
-						alert( "Files successfully deleted" );
+						alert( "<?php _e( 'Files successfully deleted', 'import-users-from-csv-with-meta' ); ?>" );
 						document.location.reload();
 					}
 				});
@@ -791,12 +791,12 @@ function acui_options()
 	$headers = get_option("acui_columns"); 
 	?>
 
-		<h3>Custom columns loaded</h3>
+		<h3><?php _e( 'Custom columns loaded', 'import-users-from-csv-with-meta' ); ?></h3>
 		<table class="form-table">
 		<tbody>
 			<tr valign="top">
-				<th scope="row">Columns loaded in previous files</th>
-				<td><small><em>(if you load another CSV with different columns, the new ones will replace this list)</em></small>
+				<th scope="row"><?php _e( 'Columns loaded in previous files', 'import-users-from-csv-with-meta' ); ?></th>
+				<td><small><em><?php _e( '(if you load another CSV with different columns, the new ones will replace this list)', 'import-users-from-csv-with-meta' ); ?></em></small>
 					<ol>
 						<?php 
 						if( is_array( $headers ) && count( $headers ) > 0 ):
@@ -805,7 +805,7 @@ function acui_options()
 						<?php endforeach;  ?>
 						
 						<?php else: ?>
-							<li>There is no columns loaded yet</li>							
+							<li><?php _e( 'There is no columns loaded yet', 'import-users-from-csv-with-meta' ); ?></li>
 						<?php endif; ?>
 					</ol>
 				</td>
@@ -820,62 +820,62 @@ function acui_options()
 
 		?>
 
-		<h3>Documentation</h3>
+		<h3><?php _e( 'Documentation', 'import-users-from-csv-with-meta' ); ?></h3>
 		<table class="form-table">
 		<tbody>
 			<tr valign="top">
-				<th scope="row">Columns position</th>
-				<td><small><em>(Documents should look like the one presented into screenshot. Remember you should fill the first two columns with the next values)</em></small>
+				<th scope="row"><?php _e( 'Columns position', 'import-users-from-csv-with-meta' ); ?></th>
+				<td><small><em><?php _e( '(Documents should look like the one presented into screenshot. Remember you should fill the first two columns with the next values)', 'import-users-from-csv-with-meta' ); ?></em></small>
 					<ol>
-						<li>Username</li>
-						<li>Email</li>
+						<li><?php _e( 'Username', 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( 'Email', 'import-users-from-csv-with-meta' ); ?></li>
 					</ol>						
-					<small><em>(The next columns are totally customizable and you can use whatever you want. All rows must contains same columns)</em></small>
-					<small><em>(User profile will be adapted to the kind of data you have selected)</em></small>
-					<small><em>(If you want to disable the extra profile information, please deactivate this plugin after make the import)</em></small>
+					<small><em><?php _e( '(The next columns are totally customizable and you can use whatever you want. All rows must contains same columns)', 'import-users-from-csv-with-meta' ); ?></em></small>
+					<small><em><?php _e( '(User profile will be adapted to the kind of data you have selected)', 'import-users-from-csv-with-meta' ); ?></em></small>
+					<small><em><?php _e( '(If you want to disable the extra profile information, please deactivate this plugin after make the import)', 'import-users-from-csv-with-meta' ); ?></em></small>
 				</td>
 			</tr>
 			<tr valign="top">
-				<th scope="row">id</th>
-				<td>You can use a column called id in order to make inserts or updates of an user using the ID used by WordPress in the wp_users table. We have two different cases:
+				<th scope="row"><?php _e( 'id', 'import-users-from-csv-with-meta' ); ?></th>
+				<td><?php _e( 'You can use a column called id in order to make inserts or updates of an user using the ID used by WordPress in the wp_users table. We have two different cases:', 'import-users-from-csv-with-meta' ); ?>
 					<ul style="list-style:disc outside none; margin-left:2em;">
-						<li>If id <strong>doesn't exist in your users table</strong>: user will be inserted</li>
-						<li>If id <strong>exists</strong>: plugin check if username is the same, if yes, it will update the data, if not, it ignores the cell to avoid problems</li>					
+						<li><?php _e( "If id <strong>doesn't exist in your users table</strong>: user will be inserted", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "If id <strong>exists</strong>: plugin check if username is the same, if yes, it will update the data, if not, it ignores the cell to avoid problems", 'import-users-from-csv-with-meta' ); ?></li>
 					</ul>
 				</td>
 			</tr>
 			<tr valign="top">
-				<th scope="row">Passwords</th>
-				<td>A string that contains user passwords. We have different options for this case:
+				<th scope="row"><?php _e( "Passwords", 'import-users-from-csv-with-meta' ); ?></th>
+				<td><?php _e( "A string that contains user passwords. We have different options for this case:", 'import-users-from-csv-with-meta' ); ?>
 					<ul style="list-style:disc outside none; margin-left:2em;">
-						<li>If you <strong>don't create a column for passwords</strong>: passwords will be generated automatically</li>
-						<li>If you <strong>create a column for passwords</strong>: if cell is empty, password won't be updated; if cell has a value, it will be used</li>					
+						<li><?php _e( "If you <strong>don't create a column for passwords</strong>: passwords will be generated automatically", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "If you <strong>create a column for passwords</strong>: if cell is empty, password won't be updated; if cell has a value, it will be used", 'import-users-from-csv-with-meta' ); ?></li>
 					</ul>
 				</td>
 			</tr>
 			<tr valign="top">
-				<th scope="row">WordPress default profile data</th>
-				<td>You can use those labels if you want to set data adapted to the WordPress default user columns (the ones who use the function <a href="http://codex.wordpress.org/Function_Reference/wp_update_user">wp_update_user</a>)
+				<th scope="row"><?php _e( 'WordPress default profile data', 'import-users-from-csv-with-meta' ); ?></th>
+				<td><?php _e( "You can use those labels if you want to set data adapted to the WordPress default user columns (the ones who use the function", 'import-users-from-csv-with-meta' ); ?> <a href="http://codex.wordpress.org/Function_Reference/wp_update_user">wp_update_user</a>)
 					<ol>
-						<li><strong>user_nicename</strong>: A string that contains a URL-friendly name for the user. The default is the user's username.</li>
-						<li><strong>user_url</strong>: A string containing the user's URL for the user's web site.	</li>
-						<li><strong>display_name</strong>: A string that will be shown on the site. Defaults to user's username. It is likely that you will want to change this, for both appearance and security through obscurity (that is if you don't use and delete the default admin user).</li>
-						<li><strong>nickname</strong>: The user's nickname, defaults to the user's username.	</li>
-						<li><strong>first_name</strong>: The user's first name.</li>
-						<li><strong>last_name</strong>: The user's last name.</li>
-						<li><strong>description</strong>: A string containing content about the user.</li>
-						<li><strong>jabber</strong>: User's Jabber account.</li>
-						<li><strong>aim</strong>: User's AOL IM account.</li>
-						<li><strong>yim</strong>: User's Yahoo IM account.</li>
-						<li><strong>user_registered</strong>: Using the WordPress format for this kind of data Y-m-d H:i:s.</li>
+						<li><strong>user_nicename</strong>: <?php _e( "A string that contains a URL-friendly name for the user. The default is the user's username.", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><strong>user_url</strong>: <?php _e( "A string containing the user's URL for the user's web site.", 'import-users-from-csv-with-meta' ); ?>	</li>
+						<li><strong>display_name</strong>: <?php _e( "A string that will be shown on the site. Defaults to user's username. It is likely that you will want to change this, for both appearance and security through obscurity (that is if you don't use and delete the default admin user).", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><strong>nickname</strong>: <?php _e( "The user's nickname, defaults to the user's username.", 'import-users-from-csv-with-meta' ); ?>	</li>
+						<li><strong>first_name</strong>: <?php _e( "The user's first name.", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><strong>last_name</strong>: <?php _e("The user's last name.", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><strong>description</strong>: <?php _e("A string containing content about the user.", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><strong>jabber</strong>: <?php _e("User's Jabber account.", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><strong>aim</strong>: <?php _e("User's AOL IM account.", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><strong>yim</strong>: <?php _e("User's Yahoo IM account.", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><strong>user_registered</strong>: <?php _e( "Using the WordPress format for this kind of data Y-m-d H:i:s.", "import-users-from-csv-with-meta "); ?></li>
 					</ol>
 				</td>
 			</tr>
 			<?php if( is_plugin_active( 'woocommerce/woocommerce.php' ) ): ?>
 
 				<tr valign="top">
-					<th scope="row">WooCommerce is activated</th>
-					<td>You can use those labels if you want to set data adapted to the WooCommerce default user columns)
+					<th scope="row"><?php _e( "WooCommerce is activated", 'import-users-from-csv-with-meta' ); ?></th>
+					<td><?php _e( "You can use those labels if you want to set data adapted to the WooCommerce default user columns", 'import-users-from-csv-with-meta' ); ?>
 					<ol>
 						<li>billing_first_name</li>
 						<li>billing_last_name</li>
@@ -903,21 +903,21 @@ function acui_options()
 
 				<?php endif; ?>
 			<tr valign="top">
-				<th scope="row">Important notice</th>
-				<td>You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.</td>
+				<th scope="row"><?php _e( "Important notice", 'import-users-from-csv-with-meta' ); ?></th>
+				<td><?php _e( "You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.", 'import-users-from-csv-with-meta' ); ?></td>
 			</tr>
 			<tr valign="top">
-				<th scope="row">Any question about it</th>
+				<th scope="row"><?php _e( "Any question about it", 'import-users-from-csv-with-meta' ); ?></th>
 				<td>
 					<ul style="list-style:disc outside none; margin-left:2em;">
-						<li>Free support (in WordPress forums): <a href="https://wordpress.org/support/plugin/import-users-from-csv-with-meta">https://wordpress.org/support/plugin/import-users-from-csv-with-meta</a>.</li>
-						<li>Premium support (with a quote): <a href="mailto:contacto@codection.com">contacto@codection.com</a>.</li>
+						<li><?php _e( 'Free support (in WordPress forums):', 'import-users-from-csv-with-meta' ); ?> <a href="https://wordpress.org/support/plugin/import-users-from-csv-with-meta">https://wordpress.org/support/plugin/import-users-from-csv-with-meta</a>.</li>
+						<li><?php _e( 'Premium support (with a quote):', 'import-users-from-csv-with-meta' ); ?> <a href="mailto:contacto@codection.com">contacto@codection.com</a>.</li>
 					</ul>
 				</td>
 			</tr>
 			<tr valign="top">
-				<th scope="row">Example</th>
-			<td>Download this <a href="<?php echo plugins_url() . "/import-users-from-csv-with-meta/test.csv"; ?>">.csv file</a> to test</td> 
+				<th scope="row"><?php _e( 'Example', 'import-users-from-csv-with-meta' ); ?></th>
+			<td><?php _e( 'Download this', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo plugins_url() . "/import-users-from-csv-with-meta/test.csv"; ?>">.csv <?php _e('file','import-users-from-csv-with-meta'); ?></a> <?php _e( 'to test', 'import-users-from-csv-with-meta' ); ?></td>
 			</tr>
 		</tbody>
 		</table>
@@ -933,25 +933,25 @@ function acui_options()
 		$automattic_wordpress_email = get_option( "acui_automattic_wordpress_email" );
 	?>
 		<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
-		<h3>Mail options</h3>
+		<h3><?php _e('Mail options','import-users-from-csv-with-meta'); ?></h3>
 
-		<p class="description">You can set your own SMTP and other mail details <a href="<?php echo admin_url( 'tools.php?page=acui-smtp' ); ?>" target="_blank">here</a>.
+		<p class="description"><?php _e( 'You can set your own SMTP and other mail details', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo admin_url( 'tools.php?page=acui-smtp' ); ?>" target="_blank"><?php _e( 'here', 'import-users-from-csv-with-meta' ); ?></a>.
 		
 		<table class="optiontable form-table">
 			<tbody>
 				<tr valign="top">
-					<th scope="row">WordPress automatic emails users updated</th>
+					<th scope="row"><?php _e( 'WordPress automatic emails users updated', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
 						<fieldset>
 							<legend class="screen-reader-text">
-								<span>Send automattic WordPress emails?</span>
+								<span><?php _e( 'Send automattic WordPress emails?', 'import-users-from-csv-with-meta' ); ?></span>
 							</legend>
 							<label for="automattic_wordpress_email">
 								<select name="automattic_wordpress_email" id="automattic_wordpress_email">
-									<option <?php if( $automattic_wordpress_email == 'false' ) echo "selected='selected'"; ?> value="false">Deactivate WordPress automattic email when an user is updated or his password is changed</option>
-									<option <?php if( $automattic_wordpress_email == 'true' ) echo "selected='selected'"; ?> value="true">Activate WordPress automattic email when an user is updated or his password is changed</option>
+									<option <?php if( $automattic_wordpress_email == 'false' ) echo "selected='selected'"; ?> value="false"><?php _e( "Deactivate WordPress automattic email when an user is updated or his password is changed", 'import-users-from-csv-with-meta' ) ;?></option>
+									<option <?php if( $automattic_wordpress_email == 'true' ) echo "selected='selected'"; ?> value="true"><?php _e( 'Activate WordPress automattic email when an user is updated or his password is changed', 'import-users-from-csv-with-meta' ); ?></option>
 								</select>
-								<span class="description">When you update an user or change his password, WordPress prepare and send automattic email, you can deactivate it here.</span>
+								<span class="description"><? _e( "When you update an user or change his password, WordPress prepare and send automattic email, you can deactivate it here.", 'import-users-from-csv-with-meta' ); ?></span>
 							</label>
 						</fieldset>
 					</td>
@@ -959,9 +959,9 @@ function acui_options()
 			</tbody>
 		</table>	
 
-		<h3>Customize the email that can be sent when importing users</h3>
+		<h3><?php _e( 'Customize the email that can be sent when importing users', 'import-users-from-csv-with-meta' ); ?></h3>
 		
-		<p>Mail subject : <input name="subject_mail" size="100" value="<?php echo $subject_mail; ?>" id="title" autocomplete="off" type="text"></p>
+		<p><?php _e( 'Mail subject :', 'import-users-from-csv-with-meta' ); ?><input name="subject_mail" size="100" value="<?php echo $subject_mail; ?>" id="title" autocomplete="off" type="text"></p>
 		<?php wp_editor( $body_mail , 'body_mail'); ?>
 
 		<br/>
@@ -969,13 +969,13 @@ function acui_options()
 		
 		<p>You can use:</p>
 		<ul style="list-style-type:disc; margin-left:2em;">
-			<li>**username** = username to login</li>
-			<li>**password** = user password</li>
-			<li>**loginurl** = current site login url</li>
-			<li>**lostpasswordurl** = lost password url</li>
-			<li>**passwordreseturl** = password reset url</li>
-			<li>**email** = user email</li>
-			<li>You can also use any WordPress user standard field or an own metadata, if you have used it in your CSV. For example, if you have a first_name column, you could use **first_name** or any other meta_data like **my_custom_meta**</li>
+			<li>**username** = <?php _e( 'username to login', 'import-users-from-csv-with-meta' ); ?></li>
+			<li>**password** = <?php _e( 'user password', 'import-users-from-csv-with-meta' ); ?></li>
+			<li>**loginurl** = <?php _e( 'current site login url', 'import-users-from-csv-with-meta' ); ?></li>
+			<li>**lostpasswordurl** = <?php _e( 'lost password url', 'import-users-from-csv-with-meta' ); ?></li>
+			<li>**passwordreseturl** = <?php _e( 'password reset url', 'import-users-from-csv-with-meta' ); ?></li>
+			<li>**email** = <?php _e( 'user email', 'import-users-from-csv-with-meta' ); ?></li>
+			<li><?php _e( "You can also use any WordPress user standard field or an own metadata, if you have used it in your CSV. For example, if you have a first_name column, you could use **first_name** or any other meta_data like **my_custom_meta**", 'import-users-from-csv-with-meta' ) ;?></li>
 		</ul>
 
 		</form>
@@ -1026,55 +1026,55 @@ function acui_options()
 		$log = "No tasks done yet.";
 
 	?>
-		<h3>Execute an import of users periodically</h3>
+		<h3><?php _e( "Execute an import of users periodically", 'import-users-from-csv-with-meta' ); ?></h3>
 
 		<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
 			<table class="form-table">
 				<tbody>
 				<tr class="form-field">
-					<th scope="row"><label for="path_to_file">Path of file that are going to be imported</label></th>
+					<th scope="row"><label for="path_to_file"><?php _e( "Path of file that are going to be imported", 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<input placeholder="Insert complete path to the file" type="text" name="path_to_file" id="path_to_file" value="<?php echo $path_to_file; ?>" style="width:70%;" />
-						<p class="description">You have to introduce the path to file, i.e.: <?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/test.csv</p>
+						<input placeholder="<?php _e('Insert complete path to the file', 'import-users-from-csv-with-meta' ) ?>" type="text" name="path_to_file" id="path_to_file" value="<?php echo $path_to_file; ?>" style="width:70%;" />
+						<p class="description"><?php _e( 'You have to introduce the path to file, i.e.:', 'import-users-from-csv-with-meta' ); ?> <?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/test.csv</p>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
-					<th scope="row"><label for="period">Period</label></th>
+					<th scope="row"><label for="period"><?php _e( 'Period', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>	
 						<select id="period" name="period">
-							<option <?php if( $period == 'hourly' ) echo "selected='selected'"; ?> value="hourly">Hourly</option>
-							<option <?php if( $period == 'twicedaily' ) echo "selected='selected'"; ?> value="twicedaily">Twicedaily</option>
-							<option <?php if( $period == 'daily' ) echo "selected='selected'"; ?> value="daily">Daily</option>
+							<option <?php if( $period == 'hourly' ) echo "selected='selected'"; ?> value="hourly"><?php _e( 'Hourly', 'import-users-from-csv-with-meta' ); ?></option>
+							<option <?php if( $period == 'twicedaily' ) echo "selected='selected'"; ?> value="twicedaily"><?php _e( 'Twicedaily', 'import-users-from-csv-with-meta' ); ?></option>
+							<option <?php if( $period == 'daily' ) echo "selected='selected'"; ?> value="daily"><?php _e( 'Daily', 'import-users-from-csv-with-meta' ); ?></option>
 						</select>
-						<p class="description">How often the event should reoccur?</p>
+						<p class="description"><?php _e( 'How often the event should reoccur?', 'import-users-from-csv-with-meta' ); ?></p>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
-					<th scope="row"><label for="cron-activated">Activate periodical import?</label></th>
+					<th scope="row"><label for="cron-activated"><?php _e( 'Activate periodical import?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<input type="checkbox" name="cron-activated" value="yes" <?php if( $cron_activated == true ) echo "checked='checked'"; ?>/>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
-					<th scope="row"><label for="send-mail-cron">Send mail when using periodical import?</label></th>
+					<th scope="row"><label for="send-mail-cron"><?php _e( 'Send mail when using periodical import?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<input type="checkbox" name="send-mail-cron" value="yes" <?php if( $send_mail_cron == true ) echo "checked='checked'"; ?>/>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
-					<th scope="row"><label for="send-mail-updated">Send mail also to users that are being updated?</label></th>
+					<th scope="row"><label for="send-mail-updated"><?php _e( 'Send mail also to users that are being updated?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<input type="checkbox" name="send-mail-updated" value="yes" <?php if( $send_mail_updated == true ) echo "checked='checked'"; ?>/>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
-					<th scope="row"><label for="cron-delete-users">Delete users that are not present in the CSV?</label></th>
+					<th scope="row"><label for="cron-delete-users"><?php _e( 'Delete users that are not present in the CSV?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<input type="checkbox" name="cron-delete-users" value="yes" <?php if( $cron_delete_users == true ) echo "checked='checked'"; ?>/>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
-					<th scope="row"><label for="role">Role</label></th>
+					<th scope="row"><label for="role"><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<select id="role" name="role">
 							<?php 
@@ -1088,42 +1088,42 @@ function acui_options()
 								}
 							?>
 						</select>
-						<p class="description">Which role would be used to import users?</p>
+						<p class="description"><?php _e( 'Which role would be used to import users?', 'import-users-from-csv-with-meta' ); ?></p>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
-					<th scope="row"><label for="move-file-cron">Move file after import?</label></th>
+					<th scope="row"><label for="move-file-cron"><?php _e( 'Move file after import?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<div style="float:left;">
 							<input type="checkbox" name="move-file-cron" value="yes" <?php if( $move_file_cron == true ) echo "checked='checked'"; ?>/>
 						</div>
 
 						<div id="move-file-cron-cell" style="margin-left:25px;">
-							<input placeholder="Insert complete path to the file" type="text" name="path_to_move" id="path_to_move" value="<?php echo $path_to_move; ?>" style="width:70%;" />
-							<p class="description">You have to introduce the path to file, i.e.: <?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/move.csv</p>
+							<input placeholder="<?php _e( 'Insert complete path to the file', 'import-users-from-csv-with-meta'); ?>" type="text" name="path_to_move" id="path_to_move" value="<?php echo $path_to_move; ?>" style="width:70%;" />
+							<p class="description"><?php _e( 'You have to introduce the path to file, i.e.:', 'import-users-from-csv-with-meta'); ?> <?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/move.csv</p>
 						</div>
 					</td>
 				</tr>				
 				<tr class="form-field form-required">
-					<th scope="row"><label for="log">Last actions of schedule task</label></th>
+					<th scope="row"><label for="log"><?php _e( 'Last actions of schedule task', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<pre><?php echo $log; ?></pre>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
-					<th scope="row"><label for="mails">Mail sending</label></th>
-					<td>Please take care: for this option, cron import, mail sending is not available in this version (if you need it <a href="mailto:contacto@codection.com">talk with us</a>)</td>
+					<th scope="row"><label for="mails"><?php _e( 'Mail sending', 'import-users-from-csv-with-meta' ) ?></label></th>
+					<td><?php _e( 'Please take care: for this option, cron import, mail sending is not available in this version (if you need it', 'import-users-from-csv-with-meta' ); ?> <a href="mailto:contacto@codection.com"><?php _e( 'talk with us', 'import-users-from-csv-with-meta' ); ?></a>)</td>
 				</tr>
 				</tbody>
 			</table>
-			<input class="button-primary" type="submit" value="Save schedule options"/>
+			<input class="button-primary" type="submit" value="<?php _e( 'Save schedule options', 'import-users-from-csv-with-meta'); ?>"/>
 		</form>
 
 		<script>
 		jQuery( document ).ready( function( $ ){
 			$( "[name='cron-delete-users']" ).change(function() {
 		        if( $(this).is( ":checked" ) ) {
-		            var returnVal = confirm("Are you sure to delete all users that are not present in the CSV? This action cannto be undone.");
+		            var returnVal = confirm("<?php _e( 'Are you sure to delete all users that are not present in the CSV? This action cannot be undone.', 'import-users-from-csv-with-meta' ); ?>");
 		            $(this).attr("checked", returnVal);
 		        }
 		        
@@ -1146,16 +1146,16 @@ function acui_options()
 	<?php case 'donate': ?>
 
 	<div class="postbox">
-	    <h3 class="hndle"><span>&nbsp;Do you like it?</span></h3>
+	    <h3 class="hndle"><span>&nbsp;<?php _e( 'Do you like it?', 'import-users-from-csv-with-meta' ); ?></span></h3>
 
 	    <div class="inside" style="display: block;">
-	        <img src="<?php echo $url_plugin; ?>icon_coffee.png" alt="buy me a coffee" style=" margin: 5px; float:left;">
-	        <p>Hi! we are <a href="https://twitter.com/fjcarazo" target="_blank" title="Javier Carazo">Javier Carazo</a> and <a href="https://twitter.com/ahornero" target="_blank" title="Alberto Hornero">Alberto Hornero</a>  from <a href="http://codection.com">Codection</a>, developers of this plugin.</p>
-	        <p>We have been spending many hours to develop this plugin. <br>If you like and use this plugin, you can <strong>buy us a cup of coffee</strong>.</p>
+	        <img src="<?php echo $url_plugin; ?>icon_coffee.png" alt="<?php _e( 'buy me a coffee', 'import-users-from-csv-with-meta' ); ?>" style=" margin: 5px; float:left;">
+	        <p><?php _e( 'Hi! we are', 'import-users-from-csv-with-meta'); ?> <a href="https://twitter.com/fjcarazo" target="_blank" title="Javier Carazo">Javier Carazo</a> <?php _e( 'and', 'import-users-from-csv-with-meta' ); ?> <a href="https://twitter.com/ahornero" target="_blank" title="Alberto Hornero">Alberto Hornero</a> <?php _e( 'from', 'import-users-from-csv-with-meta' ); ?> <a href="http://codection.com">Codection</a>, <?php _e("developers of this plugin.", 'import-users-from-csv-with-meta' ); ?></p>
+	        <p><?php _e( 'We have been spending many hours to develop this plugin. <br>If you like and use this plugin, you can <strong>buy us a cup of coffee</strong>.', 'import-users-from-csv-with-meta' ); ?></p>
 	        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 				<input type="hidden" name="cmd" value="_s-xclick">
 				<input type="hidden" name="hosted_button_id" value="QPYVWKJG4HDGG">
-				<input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal – The safer, easier way to pay online.">
+				<input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="<?php _e('PayPal – The safer, easier way to pay online.', 'import-users-from-csv-with-meta' ); ?>">
 				<img alt="" border="0" src="https://www.paypalobjects.com/es_ES/i/scr/pixel.gif" width="1" height="1">
 			</form>
 	        <div style="clear:both;"></div>
@@ -1167,11 +1167,11 @@ function acui_options()
 	<?php case 'help': ?>
 
 	<div class="postbox">
-	    <h3 class="hndle"><span>&nbsp;Need help with WordPress or WooCommerce?</span></h3>
+	    <h3 class="hndle"><span>&nbsp;<?php _e( 'Need help with WordPress or WooCommerce?', 'import-users-from-csv-with-meta' ); ?></span></h3>
 
 	    <div class="inside" style="display: block;">
-	        <p>Hi! we are <a href="https://twitter.com/fjcarazo" target="_blank" title="Javier Carazo">Javier Carazo</a> and <a href="https://twitter.com/ahornero" target="_blank" title="Alberto Hornero">Alberto Hornero</a>  from <a href="http://codection.com">Codection</a>, developers of this plugin.</p>
-	        <p>We work everyday with WordPress and WooCommerce, if you need help hire us, send us a message to <a href="mailto:contacto@codection.com">contacto@codection.com</a>.</p>
+	        <p><?php _e( 'Hi! we are', 'import-users-from-csv-with-meta' ); ?> <a href="https://twitter.com/fjcarazo" target="_blank" title="Javier Carazo">Javier Carazo</a><?php _e( 'and', 'import-users-from-csv-with-meta' ) ?> <a href="https://twitter.com/ahornero" target="_blank" title="Alberto Hornero">Alberto Hornero</a>  <?php _e( 'from', 'import-users-from-csv-with-meta' ); ?> <a href="http://codection.com">Codection</a>, <?php _e( 'developers of this plugin.', 'import-users-from-csv-with-meta' ); ?></p>
+	        <p><?php _e( 'We work everyday with WordPress and WooCommerce, if you need help hire us, send us a message to', 'import-users-from-csv-with-meta' ); ?> <a href="mailto:contacto@codection.com">contacto@codection.com</a>.</p>
 	        <div style="clear:both;"></div>
 	    </div>
 	</div>

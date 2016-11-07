@@ -4,7 +4,7 @@ Donate link: http://paypal.me/codection
 Tags: csv, import, importer, meta data, meta, user, users, user meta,  editor, profile, custom, fields, delimiter, update, insert
 Requires at least: 3.4
 Tested up to: 4.6
-Stable tag: 1.9.8.1
+Stable tag: 1.9.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,9 @@ Plugin will automatically detect:
 
 
 == Changelog ==
+
+= 1.9.9 =
+*	Plugin now is localized using i18n thanks to code provided by Toni Ginard @toniginard
 
 = 1.9.8.1 =
 *	Bug fixed in cron import, nonce conditional check, thanks to Ville Kokkala for showing the bug

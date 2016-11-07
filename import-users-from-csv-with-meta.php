@@ -4,7 +4,7 @@ Plugin Name: Import users from CSV with meta
 Plugin URI: http://www.codection.com
 Description: This plugins allows to import users using CSV files to WP database automatically
 Author: codection
-Version: 1.9.8.1
+Version: 1.9.9
 Author URI: http://codection.com
 */
 
@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 $url_plugin = WP_PLUGIN_URL . '/' . str_replace( basename( __FILE__ ), "", plugin_basename( __FILE__ ) );
 $wp_users_fields = array( "id", "user_nicename", "user_url", "display_name", "nickname", "first_name", "last_name", "description", "jabber", "aim", "yim", "user_registered", "password", "user_pass" );
 $wp_min_fields = array("Username", "Email");
+
+load_plugin_textdomain('import-users-from-csv-with-meta', false, plugin_basename(dirname(__FILE__)). '/languages');
 
 include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
@@ -46,8 +48,8 @@ function acui_activate(){
 	
 	add_option( "acui_columns" );
 	
-	add_option( "acui_mail_subject", 'Welcome to ' . get_bloginfo("name"), '', false );
-	add_option( "acui_mail_body", 'Welcome,<br/>Your data to login in this site is:<br/><ul><li>URL to login: **loginurl**</li><li>Username = **username**</li><li>Password = **password**</li></ul>', '', false );
+	add_option( "acui_mail_subject", __('Welcome to', 'import-users-from-csv-with-meta') . ' ' . get_bloginfo("name"), '', false );
+	add_option( "acui_mail_body", __('Welcome,', 'import-users-from-csv-with-meta') . '<br/>' . __('Your data to login in this site is:', 'import-users-from-csv-with-meta') . '<br/><ul><li>' . __('URL to login', 'import-users-from-csv-with-meta') . ': **loginurl**</li><li>' . __( 'Username', 'import-users-from-csv-with-meta') . '= **username**</li><li>Password = **password**</li></ul>', '', false );
 	
 	add_option( "acui_cron_activated" );
 	add_option( "acui_send_mail_cron" );
@@ -91,16 +93,16 @@ function acui_deactivate(){
 }
 
 function acui_menu() {
-	add_submenu_page( 'tools.php', 'Insert users massively (CSV)', 'Import users from CSV', 'create_users', 'acui', 'acui_options' );
-	add_submenu_page( NULL, 'SMTP Configuration', 'SMTP Configuration', 'create_users', 'acui-smtp', 'acui_smtp' );
+	add_submenu_page( 'tools.php', __( 'Insert users massively (CSV)', 'import-users-from-csv-with-meta' ), __( 'Import users from CSV', 'import-users-from-csv-with-meta' ), 'create_users', 'acui', 'acui_options' );
+	add_submenu_page( NULL, __( 'SMTP Configuration', 'import-users-from-csv-with-meta' ), __( 'SMTP Configuration', 'import-users-from-csv-with-meta' ), 'create_users', 'acui-smtp', 'acui_smtp' );
 }
 
 function acui_plugin_row_meta( $links, $file ){
 	if ( strpos( $file, basename( __FILE__ ) ) !== false ) {
 		$new_links = array(
-					'<a href="https://www.paypal.me/codection" target="_blank">Donate</a>',
-					'<a href="mailto:contacto@codection.com" target="_blank">Premium support</a>',
-					'<a href="http://codection.com/tienda" target="_blank">Premium plugins</a>',
+					'<a href="https://www.paypal.me/codection" target="_blank">' . __( 'Donate', 'import-users-from-csv-with-meta' ) . '</a>',
+					'<a href="mailto:contacto@codection.com" target="_blank">' . __( 'Premium support', 'import-users-from-csv-with-meta' ) . '</a>',
+					'<a href="http://codection.com/tienda" target="_blank">' . __( 'Premium plugins', 'import-users-from-csv-with-meta' ) . '</a>',
 				);
 		
 		$links = array_merge( $links, $new_links );
@@ -190,14 +192,14 @@ function acui_get_editable_roles() {
 
 function acui_check_options(){
 	if( get_option( "acui_mail_body" ) == "" )
-		update_option( "acui_mail_body", 'Welcome,<br/>Your data to login in this site is:<br/><ul><li>URL to login: **loginurl**</li><li>Username = **username**</li><li>Password = **password**</li></ul>' );
+		update_option( "acui_mail_body", __( 'Welcome,', 'import-users-from-csv-with-meta' ) . '<br/>' . __( 'Your data to login in this site is:', 'import-users-from-csv-with-meta' ) . '<br/><ul><li>' . __( 'URL to login', 'import-users-from-csv-with-meta' ) . ': **loginurl**</li><li>' . __( 'Username', 'import-users-from-csv-with-meta' ) . ' = **username**</li><li>' . __( 'Password', 'import-users-from-csv-with-meta' ) . ' = **password**</li></ul>' );
 
 	if( get_option( "acui_mail_subject" ) == "" )
-		update_option( "acui_mail_subject", 'Welcome to ' . get_bloginfo("name") );
+		update_option( "acui_mail_subject", __('Welcome to','import-users-from-csv-with-meta') . ' ' . get_bloginfo("name") );
 }
 
 function acui_admin_tabs( $current = 'homepage' ) {
-    $tabs = array( 'homepage' => 'Import users from CSV', 'columns' => 'Customs columns loaded', 'mail-options' => 'Mail options', 'doc' => 'Documentation', 'cron' => 'Cron import', 'donate' => 'Donate', 'shop' => 'Shop', 'help' => 'Hire an expert' );
+    $tabs = array( 'homepage' => __( 'Import users from CSV', 'import-users-from-csv-with-meta' ), 'columns' => __( 'Customs columns loaded', 'import-users-from-csv-with-meta' ), 'mail-options' => __( 'Mail options', 'import-users-from-csv-with-meta' ), 'doc' => __( 'Documentation', 'import-users-from-csv-with-meta' ), 'cron' => __( 'Cron import', 'import-users-from-csv-with-meta' ), 'donate' => __( 'Donate', 'import-users-from-csv-with-meta' ), 'shop' => __( 'Shop', 'import-users-from-csv-with-meta' ), 'help' => __( 'Hire an expert', 'import-users-from-csv-with-meta' ));
     echo '<div id="icon-themes" class="icon32"><br></div>';
     echo '<h2 class="nav-tab-wrapper">';
     foreach( $tabs as $tab => $name ){
@@ -237,7 +239,7 @@ function acui_fileupload_process( $form_data, $is_cron = false ) {
   if( empty( $uploadfiles["name"][0] ) ):
   	
   	  if( !file_exists ( $path_to_file ) )
-  			wp_die( "Error, we cannot find the file: $path_to_file" ); 
+  			wp_die( __( 'Error, we cannot find the file', 'import-users-from-csv-with-meta' ) . ": $path_to_file" );
 
   	acui_import_users( $path_to_file, $form_data, 0, $is_cron );
 
@@ -281,7 +283,7 @@ function acui_fileupload_process( $form_data, $is_cron = false ) {
 			 * Check write permissions
 			 */
 			if ( !is_writeable( $upload_dir['path'] ) ) {
-			  wp_die('Unable to write to directory. Is this directory writable by the server?');
+			  wp_die( __( 'Unable to write to directory. Is this directory writable by the server?', 'import-users-from-csv-with-meta' ));
 			  return;
 			}
 
@@ -289,7 +291,7 @@ function acui_fileupload_process( $form_data, $is_cron = false ) {
 			 * Save temporary file to uploads dir
 			 */
 			if ( !@move_uploaded_file($filetmp, $filedest) ){
-			  wp_die("Error, the file $filetmp could not moved to : $filedest ");
+			  wp_die( __( 'Error, the file', 'import-users-from-csv-with-meta' ) . " $filetmp " . __( 'could not moved to', 'import-users-from-csv-with-meta' ) . " : $filedest");
 			  continue;
 			}
 
@@ -318,7 +320,7 @@ function acui_save_mail_template( $form_data ){
 	update_option( "acui_mail_subject", stripslashes( $form_data["subject_mail"] ) );
 	?>
 	<div class="updated">
-       <p>Mail template updated correctly</p>
+       <p><?php _e( 'Mail template updated correctly', 'import-users-from-csv-with-meta' )?></p>
     </div>
     <?php
 }
@@ -365,13 +367,13 @@ function acui_manage_cron_process( $form_data ){
 	?>
 
 	<div class="updated">
-       <p>Settings updated correctly</p>
+       <p><?php _e( 'Settings updated correctly', 'import-users-from-csv-with-meta' ) ?></p>
     </div>
     <?php
 }
 
 function acui_cron_process(){
-	$message = "Import cron task starts at " . date("Y-m-d H:i:s") . "<br/>";
+	$message = __('Import cron task starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
 
 	$form_data = array();
 	$form_data[ "path_to_file" ] = get_option( "acui_cron_path_to_file");
@@ -392,7 +394,7 @@ function acui_cron_process(){
 		rename( $path_to_file, $path_to_move );
 	}
 
-	$message .= "--Finished at " . date("Y-m-d H:i:s") . "<br/><br/>";	
+	$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/><br/>';
 
 	update_option( "acui_cron_log", $message );
 }
@@ -501,7 +503,7 @@ function acui_modify_user_edit_admin(){
 
 function acui_delete_attachment() {
 	if( ! current_user_can( 'manage_options' ) )
-		wp_die( "You are not an adminstrator" );
+		wp_die( __('You are not an adminstrator', 'import-users-from-csv-with-meta' ) );
 
 	$attach_id = intval( $_POST['attach_id'] );
 
