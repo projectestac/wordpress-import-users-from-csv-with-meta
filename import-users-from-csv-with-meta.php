@@ -12,7 +12,15 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 $url_plugin = WP_PLUGIN_URL . '/' . str_replace( basename( __FILE__ ), "", plugin_basename( __FILE__ ) );
 $wp_users_fields = array( "id", "user_nicename", "user_url", "display_name", "nickname", "first_name", "last_name", "description", "jabber", "aim", "yim", "user_registered", "password", "user_pass" );
+
+// XTEC ************ MODIFICAT - Make the password a requirement for the new users
+// 2016.05.05 @aginard
+$wp_min_fields = array("Username", "Password", "Email");
+//************ ORIGINAL
+/*
 $wp_min_fields = array("Username", "Email");
+*/
+//************ FI
 
 load_plugin_textdomain('import-users-from-csv-with-meta', false, plugin_basename(dirname(__FILE__)). '/languages');
 
@@ -205,6 +213,10 @@ function acui_check_options(){
 }
 
 function acui_admin_tabs( $current = 'homepage' ) {
+
+    // XTEC ************ ELIMINAT - Remove tabs
+    // 2016.05.06 @aginard
+    /*
     $tabs = array( 'homepage' => __( 'Import users from CSV', 'import-users-from-csv-with-meta' ), 'columns' => __( 'Customs columns loaded', 'import-users-from-csv-with-meta' ), 'mail-options' => __( 'Mail options', 'import-users-from-csv-with-meta' ), 'doc' => __( 'Documentation', 'import-users-from-csv-with-meta' ), 'cron' => __( 'Cron import', 'import-users-from-csv-with-meta' ), 'donate' => __( 'Donate', 'import-users-from-csv-with-meta' ), 'shop' => __( 'Shop', 'import-users-from-csv-with-meta' ), 'help' => __( 'Hire an expert', 'import-users-from-csv-with-meta' ));
     echo '<div id="icon-themes" class="icon32"><br></div>';
     echo '<h2 class="nav-tab-wrapper">';
@@ -224,6 +236,8 @@ function acui_admin_tabs( $current = 'homepage' ) {
 
     }
     echo '</h2>';
+    */
+    //************ FI
 }
 
 /**
@@ -435,7 +449,19 @@ function acui_extra_user_profile_fields( $user ) {
 	$headers = get_option("acui_columns");
 	if( is_array($headers) && !empty($headers) ):
 ?>
+
+    <!--
+    // XTEC ************ MODIFICAT - Added language support
+    // 2016.05.06 @aginard
+    -->
+	<h3><?php _e('Extra profile information', 'import-users-from-csv-with-meta'); ?></h3>
+    <!--
+    //************ ORIGINAL
+    /*
 	<h3>Extra profile information</h3>
+    */
+    //************ FI
+    -->
 	
 	<table class="form-table"><?php
 
