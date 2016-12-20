@@ -4,7 +4,7 @@ Donate link: http://paypal.me/codection
 Tags: csv, import, importer, meta data, meta, user, users, user meta,  editor, profile, custom, fields, delimiter, update, insert
 Requires at least: 3.4
 Tested up to: 4.6
-Stable tag: 1.9.9
+Stable tag: 1.9.9.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,7 @@ In Codection we have more plugins, please take a look to them.
 *	[RedSys Gateway for WooCommerce Pro a plugin to connect your WooCommerce to RedSys](http://codection.com/producto/redsys-gateway-for-woocommerce) (premium)
 *	[Ceca Gateway for WooCommerce Pro a plugin to connect your WooCommerce to Ceca](http://codection.com/producto/ceca-gateway-for-woocommerce-pro/) (premium)
 *	[BBVA Bancomer for WooCommerce Pro a plugin to connect your WooCommerce to BBVA Bancomer](http://codection.com/producto/bbva-bancomer-mexico-gateway-for-woocommerce-pro/) (premium)
+*	[RedSys Button for WordPress a plugin to receive payments using RedSys in WordPress without using WooCommerce](http://codection.com/producto/redsys-button-wordpress/) (premium)
 
 ## **Basics**
 
@@ -68,8 +69,28 @@ Plugin will automatically detect:
 4. Users imported
 5. Extra profile information (user meta)
 
-
 == Changelog ==
+
+= 1.9.9.6 =
+* 	From now we are going to keep old versions available in repository
+*	We don't delete loaded columns (and fields) when you deactivate the plugin
+*	Password is not auto generated when updating user in order to avoid problems (missing password column and update create new passwords and use to create problems)
+
+= 1.9.9.5 =
+*	Now you can set the email to empty in each row thanks to @sternhagel
+
+= 1.9.9.4 =
+*	German language added thanks to Wolfgang Kleinrath
+*	Added conditional to avoid error on mail sending
+
+= 1.9.9.3 =
+*	Now you can choose if you want to not assign a role to users when you are making an import cron
+
+= 1.9.9.2 =
+*	Now you can choose if you want to assign to some user the posts of the users that can be deleted in cron task
+
+= 1.9.9.1 =
+*	French translation added thanks to @momo-fr
 
 = 1.9.9 =
 *	Plugin now is localized using i18n thanks to code provided by Toni Ginard @toniginard

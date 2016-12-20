@@ -159,14 +159,16 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 							if( $user->user_login == $username ){
 								$user_id = $id;
 								
-								if( !empty( $password ) )
+								if( $password_position !== false )
 									wp_set_password( $password, $user_id );
 
-								$updateEmailArgs = array(
-									'ID'         => $user_id,
-									'user_email' => $email
-								);
-								wp_update_user( $updateEmailArgs );
+								if( !empty( $email ) ) {
+									$updateEmailArgs = array(
+										'ID'         => $user_id,
+										'user_email' => $email
+									);
+									wp_update_user( $updateEmailArgs );
+								}
 
 								$created = false;
 							}
@@ -177,9 +179,6 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 
 						}
 						else{
-							if( empty($password) ) // if user not exist and password is empty but the column is set, it will be generated
-								$password = wp_generate_password();
-
 							$userdata = array(
 								'ID'		  =>  $id,
 							    'user_login'  =>  $username,
@@ -192,7 +191,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 							$created = true;
 						}
 					}
-					elseif( username_exists($username) ){ // if user exists, we take his ID by login, we will update his mail if it has changed
+					elseif( username_exists( $username ) ){ // if user exists, we take his ID by login, we will update his mail if it has changed
 						if( $update_existing_users == 'no' ){
 							continue;
 						}
@@ -200,14 +199,16 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 						$user_object = get_user_by( "login", $username );
 						$user_id = $user_object->ID;
 
-						if( !empty( $password ) )
+						if( $password_position !== false )
 							wp_set_password( $password, $user_id );
 
-						$updateEmailArgs = array(
-							'ID'         => $user_id,
-							'user_email' => $email
-						);
-						wp_update_user( $updateEmailArgs );
+						if( !empty( $email ) ) {
+							$updateEmailArgs = array(
+								'ID'         => $user_id,
+								'user_email' => $email
+							);
+							wp_update_user( $updateEmailArgs );
+						}
 
 						$created = false;
 					}
@@ -222,24 +223,17 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 	                    $data[0] = __( 'User already exists as:', 'import-users-from-csv-with-meta' ) . $user_object->user_login . '<br/>' . __( '(in this CSV file is called:', 'import-users-from-csv-with-meta' ) . $username . ")";
 	                    $problematic_row = true;
 
-	                    if( !empty($password) )
+	                    if( $password_position !== false )
 	                        wp_set_password( $password, $user_id );
 
 	                    $created = false;
 					}
 					elseif( email_exists( $email ) && $allow_multiple_accounts == "allowed" ){ // if the email is registered and repeated emails are allowed
-	                    
-	                    if( empty($password) ) // if user not exist and password is empty but the column is set, it will be generated
-							$password = wp_generate_password();
-
 						$hacked_email = acui_hack_email( $email );
 						$user_id = wp_create_user( $username, $password, $hacked_email );
 						acui_hack_restore_remapped_email_address( $user_id, $email );
 					}
 					else{
-						if( empty($password) ) // if user not exist and password is empty but the column is set, it will be generated
-							$password = wp_generate_password();
-
 						$user_id = wp_create_user( $username, $password, $email );
 					}
 						
@@ -260,14 +254,16 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 								$user_object->remove_role( $default_role );
 							}
 							
-							if( is_array( $role ) ){
-								foreach ($role as $single_role) {
-									$user_object->add_role( $single_role );
-								}	
+							if( !empty( $role ) ){
+								if( is_array( $role ) ){
+									foreach ($role as $single_role) {
+										$user_object->add_role( $single_role );
+									}	
+								}
+								else{
+									$user_object->add_role( $role );
+								}
 							}
-							else{
-								$user_object->add_role( $role );
-							}												
 						}
 					}
 
@@ -353,16 +349,18 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 						
 					// send mail
 					if( isset( $form_data["sends_email"] ) && $form_data["sends_email"] && $mail_for_this_user ):
-						$key= get_password_reset_key( $user_object );
+						$key = get_password_reset_key( $user_object );
 						$user_login= $user_object->user_login;
 						
 						$body_mail = get_option( "acui_mail_body" );
 						$subject = get_option( "acui_mail_subject" );
 												
 						$body_mail = str_replace( "**loginurl**", "<a href='" . home_url() . "/wp-login.php" . "'>" . home_url() . "/wp-login.php" . "</a>", $body_mail );
-						$body_mail = str_replace( "**username**", $username, $body_mail );
+						$body_mail = str_replace( "**username**", $user_login, $body_mail );
 						$body_mail = str_replace( "**lostpasswordurl**", wp_lostpassword_url(), $body_mail );
-						$body_mail = str_replace( "**passwordreseturl**", network_site_url( 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user_login ), 'login' ), $body_mail );
+						
+						if( !is_wp_error( $key ) )
+							$body_mail = str_replace( "**passwordreseturl**", network_site_url( 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user_login ), 'login' ), $body_mail );
 						
 						if( empty( $password ) && !$created ) 
 							$password = __( 'Password has not been changed', 'import-users-from-csv-with-meta' );
@@ -423,12 +421,18 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 			// delete all users that have not been imported
 			if( $is_cron && get_option( "acui_cron_delete_users" ) ):
 				$all_users = get_users( array( 'fields' => array( 'ID' ) ) );
+				$cron_delete_users_assign_posts = get_option( "acui_cron_delete_users_assign_posts");
 				
 				foreach ( $all_users as $user ) {
-					if( !in_array( $user->ID, $users_registered ) )
-						wp_delete_user( $user->ID );
+					if( !in_array( $user->ID, $users_registered ) ){
+						if( !empty( $cron_delete_users_assign_posts ) && get_userdata( $cron_delete_users_assign_posts ) !== false ){
+							wp_delete_user( $user->ID, $cron_delete_users_assign_posts );
+						}
+						else{
+							wp_delete_user( $user->ID );
+						}						
+					}
 				}
-
 			endif;
 
 			?>
@@ -988,6 +992,7 @@ function acui_options()
 	$send_mail_cron = get_option( "acui_send_mail_cron");
 	$send_mail_updated = get_option( "acui_send_mail_updated");
 	$cron_delete_users = get_option( "acui_cron_delete_users");
+	$cron_delete_users_assign_posts = get_option( "acui_cron_delete_users_assign_posts");
 	$path_to_file = get_option( "acui_cron_path_to_file");
 	$period = get_option( "acui_cron_period");
 	$role = get_option( "acui_cron_role");
@@ -1007,14 +1012,14 @@ function acui_options()
 	if( empty( $cron_delete_users ) )
 		$cron_delete_users = false;
 
+	if( empty( $cron_delete_users_assign_posts ) )
+		$cron_delete_users_assign_posts = '';
+
 	if( empty( $path_to_file ) )
 		$path_to_file = dirname( __FILE__ ) . '/test.csv';
 
 	if( empty( $period ) )
 		$period = 'hourly';
-
-	if( empty( $role ) )
-		$role = "subscriber";
 
 	if( empty( $move_file_cron ) )
 		$move_file_cron = false;
@@ -1070,7 +1075,29 @@ function acui_options()
 				<tr class="form-field form-required">
 					<th scope="row"><label for="cron-delete-users"><?php _e( 'Delete users that are not present in the CSV?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<input type="checkbox" name="cron-delete-users" value="yes" <?php if( $cron_delete_users == true ) echo "checked='checked'"; ?>/>
+						<div style="float:left;">
+							<input type="checkbox" name="cron-delete-users" value="yes" <?php if( $cron_delete_users == true ) echo "checked='checked'"; ?>/>
+						</div>
+						<div style="margin-left:25px;">
+							<select id="cron-delete-users-assign-posts" name="cron-delete-users-assign-posts">
+								<?php
+									if( $cron_delete_users_assign_posts == '' )
+										echo "<option selected='selected' value=''>" . __( 'Delete posts of deled users without assing to any user', 'import-users-from-csv-with-meta' ) . "</option>";
+									else
+										echo "<option value=''>" . __( 'Delete posts of deled users without assing to any user', 'import-users-from-csv-with-meta' ) . "</option>";
+
+									$blogusers = get_users();
+									
+									foreach ( $blogusers as $bloguser ) {
+										if( $bloguser->ID == $cron_delete_users_assign_posts )
+											echo "<option selected='selected' value='{$bloguser->ID}'>{$bloguser->display_name}</option>";
+										else
+											echo "<option value='{$bloguser->ID}'>{$bloguser->display_name}</option>";
+									}
+								?>
+							</select>
+							<p class="description"><?php _e( 'After delete users, we can choose if we want to assign their posts to another user. Please do not delete them or posts will be deleted.', 'import-users-from-csv-with-meta' ); ?></p>
+						</div>
 					</td>
 				</tr>
 				<tr class="form-field form-required">
@@ -1078,8 +1105,12 @@ function acui_options()
 					<td>
 						<select id="role" name="role">
 							<?php 
-								$list_roles = acui_get_editable_roles(); 
-								
+								if( $role == '' )
+									echo "<option selected='selected' value=''>" . __( 'Disable role assignement in cron import', 'import-users-from-csv-with-meta' )  . "</option>";
+								else
+									echo "<option value=''>" . __( 'Disable role assignement in cron import', 'import-users-from-csv-with-meta' )  . "</option>";
+
+								$list_roles = acui_get_editable_roles();								
 								foreach ($list_roles as $key => $value) {
 									if($key == $role)
 										echo "<option selected='selected' value='$key'>$value</option>";
@@ -1110,10 +1141,6 @@ function acui_options()
 						<pre><?php echo $log; ?></pre>
 					</td>
 				</tr>
-				<tr class="form-field form-required">
-					<th scope="row"><label for="mails"><?php _e( 'Mail sending', 'import-users-from-csv-with-meta' ) ?></label></th>
-					<td><?php _e( 'Please take care: for this option, cron import, mail sending is not available in this version (if you need it', 'import-users-from-csv-with-meta' ); ?> <a href="mailto:contacto@codection.com"><?php _e( 'talk with us', 'import-users-from-csv-with-meta' ); ?></a>)</td>
-				</tr>
 				</tbody>
 			</table>
 			<input class="button-primary" type="submit" value="<?php _e( 'Save schedule options', 'import-users-from-csv-with-meta'); ?>"/>
@@ -1125,8 +1152,13 @@ function acui_options()
 		        if( $(this).is( ":checked" ) ) {
 		            var returnVal = confirm("<?php _e( 'Are you sure to delete all users that are not present in the CSV? This action cannot be undone.', 'import-users-from-csv-with-meta' ); ?>");
 		            $(this).attr("checked", returnVal);
+
+		            if( returnVal )
+		            	$( '#cron-delete-users-assign-posts' ).show();
 		        }
-		        
+		        else{
+	       	        $( '#cron-delete-users-assign-posts' ).hide();     	        
+		        }
 		    });
 
 		    $( "[name='move-file-cron']" ).change(function() {
@@ -1135,6 +1167,10 @@ function acui_options()
 		        else
 		        	$( '#move-file-cron-cell' ).hide();
 		    });
+
+		    <?php if( $cron_delete_users == '' ): ?>
+		    $( '#cron-delete-users-assign-posts' ).hide();
+		    <?php endif; ?>
 
 		    <?php if( !$move_file_cron ): ?>
 		    $( '#move-file-cron-cell' ).hide();
