@@ -4,7 +4,7 @@ Plugin Name: Import users from CSV with meta
 Plugin URI: http://www.codection.com
 Description: This plugins allows to import users using CSV files to WP database automatically
 Author: codection
-Version: 1.9.9
+Version: 1.9.9.6
 Author URI: http://codection.com
 */
 
@@ -68,6 +68,10 @@ function acui_activate(){
 }
 
 function acui_deactivate(){
+	wp_clear_scheduled_hook( 'acui_cron' );
+}
+
+function acui_delete_options(){
 	global $acui_smtp_options;
 
 	delete_option( "acui_columns" );
@@ -84,8 +88,6 @@ function acui_deactivate(){
 	delete_option( "acui_cron_role" );
 	delete_option( "acui_cron_log" );
 	delete_option( "acui_automattic_wordpress_email" );
-
-	wp_clear_scheduled_hook( 'acui_cron' );
 
 	foreach ( $acui_smtp_options as $name => $val ) {
 		delete_option( $name );
@@ -364,6 +366,7 @@ function acui_manage_cron_process( $form_data ){
 	update_option( "acui_cron_path_to_move", $form_data["path_to_move"] );
 	update_option( "acui_cron_period", $form_data["period"] );
 	update_option( "acui_cron_role", $form_data["role"] );
+	update_option( "acui_cron_delete_users_assign_posts", $form_data["cron-delete-users-assign-posts"] );
 	?>
 
 	<div class="updated">
