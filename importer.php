@@ -4,7 +4,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false ){?>
 	<div class="wrap">
-		<h2>Importing users</h2>	
+		<!-- // XTEC ************ MODIFICAT - Add support language
+		// 2016.12.21 @xaviernietosanchez -->
+		<h2><?php _e('Importing users','import-users-from-csv-with-meta'); ?></h2>
+		<!-- ************ ORIGINAL
+		<h2>Importing users</h2>
+		// ************ FI -->
 		<?php
 			set_time_limit(0);
 			
@@ -40,7 +45,15 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 			$update_existing_users = $form_data["update_existing_users"];
 			$role = $form_data["role"];
 			$update_roles_existing_users = $form_data["update_roles_existing_users"];
+			// XTEC ************ AFEGIT - Fix php warning. Check defined index
+			// 2017.01.16 @xaviernietosanchez
+			if( isset($form_data["empty_cell_action"]) ){
+			// ************ FI
 			$empty_cell_action = $form_data["empty_cell_action"];
+			// XTEC ************ AFEGIT - Fix php warning. Check defined index
+			// 2017.01.16 @xaviernietosanchez
+			}
+			// ************ FI
 
 			if( empty( $form_data["activate_users_wp_members"] ) )
 				$activate_users_wp_members = "no_activate";
@@ -92,9 +105,17 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 				if( count( $data ) == 1 )
 					$data = $data[0];
 				
+				// XTEC ********* AFEGIT - Fix php warning. Check defined variable
+				// 2017.01.16 @xaviernietosanchez
+				if( isset($key) ){
+				// ************ FI
 				foreach ($data as $key => $value){
 					$data[ $key ] = trim( $value );
 				}
+				// XTEC ********* AFEGIT - Fix php warning. Check defined variable
+				// 2017.01.16 @xaviernietosanchez
+				}
+				// ************ FI
 
 				for($i = 0; $i < count($data); $i++){
 					$data[$i] = acui_string_conversion( $data[$i] );
@@ -531,7 +552,18 @@ function acui_options()
 		      <br>
 		    </div>
 
+		    <!--
+		    // XTEC ************ MODIFICAT - Add whitespaces to correcte read
+		    // 2016.12.21 @xaviernietosanchez
+		    -->
+		    <h3 class="hndle"><span>&nbsp;&nbsp;&nbsp;<?php _e( 'Old CSV files uploaded', 'import-users-from-csv-with-meta' ); ?></span></h3>
+		    <!--
+		    // ************ ORIGINAL
+		    /*
 		    <h3 class="hndle"><span>&nbsp;<?php _e( 'Old CSV files uploaded', 'import-users-from-csv-with-meta' ); ?></span></h3>
+		    */
+		    // ************ FI
+		    -->
 
 		    <div class="inside" style="display: block;">
 		    	<p><?php _e( 'For security reasons you should delete this files, probably they would be visible in the Internet if a bot or someone discover the URL. You can delete each file or maybe you want delete all CSV files you have uploaded:', 'import-users-from-csv-with-meta' ); ?></p>
@@ -545,7 +577,18 @@ function acui_options()
 		    			else
 		    				$date = get_the_date();
 		    		?>
+		    		<!--
+				    // XTEC ************ MODIFICAT - Fix php syntax error
+				    // 2016.12.21 @xaviernietosanchez
+				    -->
+				    <li><a href="<?php echo wp_get_attachment_url( get_the_ID() ); ?>"><?php the_title(); ?></a> <?php _e( 'uploaded on', 'import-users-from-csv-with-meta' ); ?> <?php echo $date; ?> <input type="button" value="<?php _e( 'Delete', 'import-users-from-csv-with-meta' ); ?>" class="delete_attachment" attach_id="<?php the_ID(); ?>" /></li>
+				    <!--
+				    // ************ ORIGINAL
+				    /*
 		    		<li><a href="<?php echo wp_get_attachment_url( get_the_ID() ); ?>"><?php the_title(); ?></a> _e( 'uploaded on', 'import-users-from-csv-with-meta' ) . ' ' . <?php echo $date; ?> <input type="button" value="<?php _e( 'Delete', 'import-users-from-csv-with-meta' ); ?>" class="delete_attachment" attach_id="<?php the_ID(); ?>" /></li>
+				    */
+				    // ************ FI
+				    -->
 		    		<?php endwhile; ?>
 		    		<?php wp_reset_postdata(); ?>
 		    	</ul>
@@ -655,7 +698,23 @@ function acui_options()
 					<td>
 						<div id="upload_file">
 							<input type="file" name="uploadfiles[]" id="uploadfiles" size="35" class="uploadfiles" />
+							<!--
+							// XTEC ************ AFEGIT - Only show to xtecadmin user
+							// 2017.01.16 @xaviernietosanchez
+							-->
+							<?php if ( is_xtecadmin() ){ ?>
+							<!--
+							// ************ FI
+							-->
 							<?php _e( '<em>or you can choose directly a file from your host,', 'import-users-from-csv-with-meta' ) ?> <a href="#" class="toggle_upload_path"><?php _e( 'click here', 'import-users-from-csv-with-meta' ) ?></a>.</em>
+							<!--
+							// XTEC ************ AFEGIT - Only show to xtecadmin user
+							// 2017.01.16 @xaviernietosanchez
+							-->
+							<?php } ?>
+							<!--
+							// ************ FI
+							-->
 						</div>
 						<div id="introduce_path" style="display:none;">
 							<input placeholder="<?php _e( 'You have to introduce the path to file, i.e.:' ,'import-users-from-csv-with-meta' ); ?><?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/test.csv" type="text" name="path_to_file" id="path_to_file" value="<?php echo dirname( __FILE__ ); ?>/test.csv" style="width:70%;" />
