@@ -1,0 +1,1130 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: import-users-from-csv-with-meta\n"
+"Report-Msgid-Bugs-To: Translator Name <translations@example.com>\n"
+"POT-Creation-Date: 2016-12-21 12:40+0100\n"
+"PO-Revision-Date: 2017-01-16 10:02+0100\n"
+"Last-Translator: Mònica Grau <mgrau226@xtec.cat>\n"
+"Language-Team: Departament Ensenyament Catalunya - Àrea TAC\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.9\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop;__;_e\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: import-users-from-csv-with-meta.php:59
+#: import-users-from-csv-with-meta.php:208
+msgid "Welcome to"
+msgstr "Benvinguts a"
+
+#: import-users-from-csv-with-meta.php:60
+#: import-users-from-csv-with-meta.php:205
+msgid "Welcome,"
+msgstr "Benvinguts,"
+
+#: import-users-from-csv-with-meta.php:60
+#: import-users-from-csv-with-meta.php:205
+msgid "Your data to login in this site is:"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:60
+#: import-users-from-csv-with-meta.php:205
+msgid "URL to login"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:60
+#: import-users-from-csv-with-meta.php:205 importer.php:936 importer.php:1061
+#: smtp.php:218
+msgid "Username"
+msgstr "username:"
+
+#: import-users-from-csv-with-meta.php:106
+msgid "Insert users massively (CSV)"
+msgstr "Importa usuaris des d'un fitxer CSV"
+
+#: import-users-from-csv-with-meta.php:106 importer.php:579
+msgid "Import users from CSV"
+msgstr "Importa usuaris des d'un fitxer CSV"
+
+#: import-users-from-csv-with-meta.php:107
+msgid "SMTP Configuration"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:113
+msgid "Donate"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:114
+msgid "Premium support"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:115
+msgid "Premium plugins"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:205 importer.php:948 smtp.php:222
+msgid "Password"
+msgstr "password:"
+
+#: import-users-from-csv-with-meta.php:258
+msgid "Error, we cannot find the file"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:302
+msgid "Unable to write to directory. Is this directory writable by the server?"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:310
+msgid "Error, the file"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:310
+msgid "could not moved to"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:339
+msgid "Mail template updated correctly"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:387
+msgid "Settings updated correctly"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:393
+msgid "Import cron task starts at"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:414
+msgid "--Finished at"
+msgstr ""
+
+#: import-users-from-csv-with-meta.php:431
+msgid "Extra profile information"
+msgstr "Informació extra del perfil"
+
+#: import-users-from-csv-with-meta.php:535
+msgid "You are not an adminstrator"
+msgstr ""
+
+#: importer.php:9
+msgid "Importing users"
+msgstr "Important usuaris"
+
+#: importer.php:105
+msgid "File must contain at least 2 columns: username and email"
+msgstr ""
+"El fitxer ha de contenir almenys 2 columnes: nom d'usuari i adreça "
+"electrònica"
+
+#: importer.php:133
+msgid "Inserting and updating data"
+msgstr "Introducció i actualització de dades"
+
+#: importer.php:135
+msgid "Row"
+msgstr "Fila"
+
+#: importer.php:140
+msgid "Row number"
+msgstr "La fila número"
+
+#: importer.php:140
+msgid "does not have the same columns than the header, we are going to skip"
+msgstr ""
+"no té el mateix nombre de columnes que la capçalera. Per aquest motiu, "
+"s'ignorarà l'usuari"
+
+#: importer.php:193
+msgid "Problems with ID"
+msgstr ""
+
+#: importer.php:193
+msgid ""
+"username is not the same in the CSV and in database, we are going to skip."
+msgstr ""
+"el nom d'usuari no és el mateix al CSV que la la bse de dades, s'ignorarà."
+
+#: importer.php:240
+msgid "User already exists as:"
+msgstr "L'usuari ja existeix com:"
+
+#: importer.php:240
+msgid "(in this CSV file is called:"
+msgstr "(en aquest fitxer CSV es diu:"
+
+#: importer.php:259
+msgid "Problems with user:"
+msgstr ""
+
+#: importer.php:259
+msgid ", we are going to skip. \\r\\nError: "
+msgstr ""
+
+#: importer.php:383
+msgid "Password has not been changed"
+msgstr ""
+
+#: importer.php:458
+msgid "Process finished you can go"
+msgstr "La importació ha acabat. Feu clic"
+
+#: importer.php:458
+msgid "here to see results"
+msgstr "aquí per veure'n els resultats"
+
+#: importer.php:473
+msgid "You are not allowed to see this content."
+msgstr "No esteu autoritzat a veure aquest contingut"
+
+#: importer.php:519
+msgid "Click to open/close"
+msgstr ""
+
+#: importer.php:527 importer.php:531
+msgid "Old CSV files uploaded"
+msgstr "Fitxers CSV antics"
+
+#: importer.php:537
+msgid ""
+"For security reasons you should delete this files, probably they would be "
+"visible in the Internet if a bot or someone discover the URL. You can delete "
+"each file or maybe you want delete all CSV files you have uploaded:"
+msgstr ""
+"Per raons de seguretat heu d'esborrar aquests fitxers, és possible que "
+"siguin visibles a internet si un robot o algú descobreix l'URL. Podeu "
+"esborrar cadascun dels fitxers o potser voleu esborrar tots els fitxers CSV "
+"que heu pujat."
+
+#: importer.php:538
+msgid "Delete all CSV files uploaded"
+msgstr "Esborra tots els fitxers CSV pujats"
+
+#: importer.php:552
+msgid "uploaded on"
+msgstr "pujat el"
+
+#: importer.php:552 importer.php:556
+msgid "Delete"
+msgstr "Suprimeix"
+
+#: importer.php:572
+msgid ""
+"File must contain at least <strong>2 columns: username and email</strong>. "
+"These should be the first two columns and it should be placed <strong>in "
+"this order: username and email</strong>. If there are more columns, this "
+"plugin will manage it automatically."
+msgstr ""
+
+#: importer.php:573
+msgid ""
+"Please, read carefully how <strong>passwords are managed</strong> and also "
+"take note about capitalization, this plugin is <strong>case sensitive</"
+"strong>."
+msgstr ""
+
+#: importer.php:589
+msgid "Update existing users?"
+msgstr "Voleu actualitzar els usuaris existents?"
+
+#: importer.php:592 importer.php:659
+msgid "Yes"
+msgstr "Sí"
+
+#: importer.php:593 importer.php:658
+msgid "No"
+msgstr ""
+
+#: importer.php:599 importer.php:1331
+msgid "Role"
+msgstr "Rol"
+
+#: importer.php:631
+msgid ""
+"If you choose more than one role, the roles would be assigned correctly but "
+"you should use some plugin like <a href=\"https://wordpress.org/plugins/user-"
+"role-editor/\">User Role Editor</a> to manage them."
+msgstr ""
+
+#: importer.php:646
+msgid "Where do I get this info?"
+msgstr "On trobo aquesta informació?"
+
+#: importer.php:655
+msgid "Update roles for existing users?"
+msgstr "Voleu actualitzar el rol dels usuaris existents?"
+
+#: importer.php:665
+msgid "CSV file <span class=\"description\">(required)</span></label>"
+msgstr "Fitxer CSV <span class=\"description\">(requerit)</span></label>"
+
+#: importer.php:669
+msgid "<em>or you can choose directly a file from your host,"
+msgstr "<em>El podeu triar directament del vostre servidor,"
+
+#: importer.php:669 importer.php:673
+msgid "click here"
+msgstr "feu clic aquí"
+
+#: importer.php:672 importer.php:1270 importer.php:1361
+msgid "You have to introduce the path to file, i.e.:"
+msgstr ""
+
+#: importer.php:673
+msgid "or you can upload it directly from your PC"
+msgstr "o el podeu pujar directament des del vostre ordinador"
+
+#: importer.php:684
+msgid "What should the plugin do with empty cells?"
+msgstr ""
+
+#: importer.php:687
+msgid "Leave the old value for this metadata"
+msgstr ""
+
+#: importer.php:688
+msgid "Delete the metadata"
+msgstr ""
+
+#: importer.php:714
+msgid "BuddyPress users"
+msgstr ""
+
+#: importer.php:715
+msgid ""
+"You can insert any profile from BuddyPress using his name as header. Plugin "
+"will check, before import, which fields are defined in BuddyPress and will "
+"assign it in the update. You can use this fields:"
+msgstr ""
+
+#: importer.php:719
+msgid ""
+"Remember that all date fields have to be imported using a format like this: "
+"2016-01-01 00:00:00"
+msgstr ""
+
+#: importer.php:721 importer.php:737 importer.php:754 importer.php:770
+msgid "Only for"
+msgstr "Només per"
+
+#: importer.php:721 importer.php:737 importer.php:754 importer.php:770
+msgid "users"
+msgstr "usuaris"
+
+#: importer.php:733
+msgid "Do not activate users"
+msgstr "Usuaris No activats"
+
+#: importer.php:734
+msgid "Activate users when they are being imported"
+msgstr ""
+
+#: importer.php:737
+msgid "WP Members"
+msgstr ""
+
+#: importer.php:747
+msgid "Approve users at the same time is being created"
+msgstr ""
+
+#: importer.php:750
+msgid "Do not approve users"
+msgstr "Usuaris no aprovats"
+
+#: importer.php:751
+msgid "Approve users when they are being imported"
+msgstr ""
+
+#: importer.php:754
+msgid "New User Approve"
+msgstr ""
+
+#: importer.php:764
+msgid "Repeated email in different users?"
+msgstr ""
+
+#: importer.php:767
+msgid "Not allowed"
+msgstr "No està permès"
+
+#: importer.php:768
+msgid "Allowed"
+msgstr "Permès"
+
+#: importer.php:770
+msgid "Allow Multiple Accounts"
+msgstr ""
+
+#: importer.php:770
+msgid ""
+"Allow multiple user accounts to be created having the same email address."
+msgstr ""
+
+#: importer.php:779
+msgid "WordPress Access Areas is activated"
+msgstr ""
+
+#: importer.php:781
+msgid "As user of"
+msgstr ""
+
+#: importer.php:781
+msgid "WordPress Access Areas"
+msgstr ""
+
+#: importer.php:781
+msgid "you can use the Access Areas created"
+msgstr ""
+
+#: importer.php:781 importer.php:1169
+msgid "here"
+msgstr "aquí"
+
+#: importer.php:781
+msgid ""
+"and use this areas in your own CSV file. Please use the column name "
+"<strong>wp-access-areas</strong> and in each row use <strong>the name that "
+"you have used"
+msgstr ""
+
+#: importer.php:781
+msgid ", like this ones:"
+msgstr ""
+
+#: importer.php:790
+msgid ""
+"If you leave this cell empty for some user or the access area indicated "
+"doesn't exist, user won't be assigned to any access area. You can choose "
+"more than one area for each user using pads between them in the same row, i."
+"e.: "
+msgstr ""
+
+#: importer.php:797
+msgid "Send mail"
+msgstr "Envia missatge de correu electrònic"
+
+#: importer.php:799
+msgid "Do you wish to send a mail with credentials and other data?"
+msgstr ""
+
+#: importer.php:799 importer.php:800
+msgid "yes"
+msgstr "sí"
+
+#: importer.php:800
+msgid ""
+"Do you wish to send this mail also to users that are being updated? (not "
+"only to the one which are being created)"
+msgstr ""
+
+#: importer.php:812
+msgid "Start importing"
+msgstr "Inicia la importació"
+
+#: importer.php:823 importer.php:831
+msgid "Please choose a file"
+msgstr "Seleccioneu un fitxer"
+
+#: importer.php:836
+msgid "Please enter a path to the file"
+msgstr ""
+
+#: importer.php:841
+msgid "Please select a role"
+msgstr "Seleccioneu un rol"
+
+#: importer.php:850
+msgid "Are you sure to delete this file?"
+msgstr ""
+
+#: importer.php:859
+msgid "There were problems deleting the file, please check file permissions"
+msgstr ""
+
+#: importer.php:861
+msgid "File successfully deleted"
+msgstr ""
+
+#: importer.php:869
+msgid ""
+"Are you sure to delete ALL CSV files uploaded? There can be CSV files from "
+"other plugins."
+msgstr ""
+
+#: importer.php:877
+msgid "There were problems deleting the files, please check files permissions"
+msgstr ""
+
+#: importer.php:879
+msgid "Files successfully deleted"
+msgstr ""
+
+#: importer.php:902
+msgid ""
+"Import Users module require jQuery to be installed on your wordpress in "
+"order to work!"
+msgstr ""
+"El mòdul d'importació d'usuaris requereix tenir instal·lat JQuery al vostre "
+"WordPress per funcionar!"
+
+#: importer.php:927
+msgid "Help"
+msgstr "Ajuda"
+
+#: importer.php:932
+msgid "You should fill the first three rows with the next values"
+msgstr "Heu d'omplir les tres primeres columnes amb els valors següents:"
+
+#: importer.php:938
+msgid "Sets the username."
+msgstr "Estableix el nom d'usuari."
+
+#: importer.php:942 importer.php:1062
+msgid "Email"
+msgstr "email:"
+
+#: importer.php:944
+msgid "Sets user email."
+msgstr "Estableix l'adreça electrònica de l'usuari."
+
+#: importer.php:950
+msgid "Sets user password."
+msgstr "Estableix la contrasenya de l'usuari."
+
+#: importer.php:954
+msgid ""
+"The next columns are totally customizable and you can use whatever you want. "
+"All rows must contains same columns"
+msgstr ""
+"Les columnes següents són totalment personalitzables i es poden fer servir "
+"de la forma que vulgueu. Totes les files han de contenir les mateixes "
+"columnes:"
+
+#: importer.php:959
+msgid "user_nicename"
+msgstr "user_nicename:"
+
+#: importer.php:961 importer.php:1091
+msgid ""
+"A string that contains a URL-friendly name for the user. The default is the "
+"user's username."
+msgstr ""
+"Un text que conté un URL amigable per a l'usuari. El valor per defecte és el "
+"nom de l'usuari."
+
+#: importer.php:965
+msgid "user_url"
+msgstr ""
+
+#: importer.php:967 importer.php:1092
+msgid "A string containing the user's URL for the user's web site."
+msgstr "Un text que conté l'URL de l'usuari per al seu lloc web."
+
+#: importer.php:971
+msgid "display_name"
+msgstr "display_name:"
+
+#: importer.php:973
+msgid ""
+"A string that will be shown on the site. Defaults to user's username. It is "
+"likely that you will want to change this, for both appearance and security "
+"through obscurity (that is if you dont use and delete the default admin "
+"user)."
+msgstr ""
+"Un text que es mostrarà al lloc. Per defecte és el vostre nom d'usuari."
+
+#: importer.php:977
+msgid "nickname"
+msgstr "nickname:"
+
+#: importer.php:979 importer.php:1094
+msgid "The user's nickname, defaults to the user's username."
+msgstr "L'àlies de l'usuari, per defecte, el nom d'usuari."
+
+#: importer.php:983
+msgid "first_name"
+msgstr "first_name:"
+
+#: importer.php:985 importer.php:1095
+msgid "The user's first name."
+msgstr "Nom de l'usuari."
+
+#: importer.php:989
+msgid "last_name"
+msgstr "last_name:"
+
+#: importer.php:991 importer.php:1096
+msgid "The user's last name."
+msgstr "Cognom de l'usuari."
+
+#: importer.php:995
+msgid "description"
+msgstr "description:"
+
+#: importer.php:997 importer.php:1097
+msgid "A string containing content about the user."
+msgstr "Un text amb contingut sobre l'usuari."
+
+#: importer.php:1025
+msgid "Custom columns loaded"
+msgstr ""
+
+#: importer.php:1029
+msgid "Columns loaded in previous files"
+msgstr ""
+
+#: importer.php:1030
+msgid ""
+"(if you load another CSV with different columns, the new ones will replace "
+"this list)"
+msgstr ""
+
+#: importer.php:1039
+msgid "There is no columns loaded yet"
+msgstr ""
+
+#: importer.php:1054
+msgid "Documentation"
+msgstr "Documentació"
+
+#: importer.php:1058
+msgid "Columns position"
+msgstr ""
+
+#: importer.php:1059
+msgid ""
+"(Documents should look like the one presented into screenshot. Remember you "
+"should fill the first two columns with the next values)"
+msgstr ""
+
+#: importer.php:1064
+msgid ""
+"(The next columns are totally customizable and you can use whatever you "
+"want. All rows must contains same columns)"
+msgstr ""
+"Les columnes següents són totalment personalitzables i es poden fer servir "
+"de la forma que vulgueu. Totes les files han de contenir les mateixes "
+"columnes:"
+
+#: importer.php:1065
+msgid "(User profile will be adapted to the kind of data you have selected)"
+msgstr ""
+
+#: importer.php:1066
+msgid ""
+"(If you want to disable the extra profile information, please deactivate "
+"this plugin after make the import)"
+msgstr ""
+
+#: importer.php:1070
+msgid "id"
+msgstr "Identificador"
+
+#: importer.php:1071
+msgid ""
+"You can use a column called id in order to make inserts or updates of an "
+"user using the ID used by WordPress in the wp_users table. We have two "
+"different cases:"
+msgstr ""
+
+#: importer.php:1073
+msgid ""
+"If id <strong>doesn't exist in your users table</strong>: user will be "
+"inserted"
+msgstr ""
+
+#: importer.php:1074
+msgid ""
+"If id <strong>exists</strong>: plugin check if username is the same, if yes, "
+"it will update the data, if not, it ignores the cell to avoid problems"
+msgstr ""
+
+#: importer.php:1079
+msgid "Passwords"
+msgstr "Contrasenyes"
+
+#: importer.php:1080
+msgid ""
+"A string that contains user passwords. We have different options for this "
+"case:"
+msgstr ""
+
+#: importer.php:1082
+msgid ""
+"If you <strong>don't create a column for passwords</strong>: passwords will "
+"be generated automatically"
+msgstr ""
+
+#: importer.php:1083
+msgid ""
+"If you <strong>create a column for passwords</strong>: if cell is empty, "
+"password won't be updated; if cell has a value, it will be used"
+msgstr ""
+
+#: importer.php:1088
+msgid "WordPress default profile data"
+msgstr ""
+
+#: importer.php:1089
+msgid ""
+"You can use those labels if you want to set data adapted to the WordPress "
+"default user columns (the ones who use the function"
+msgstr ""
+
+#: importer.php:1093
+msgid ""
+"A string that will be shown on the site. Defaults to user's username. It is "
+"likely that you will want to change this, for both appearance and security "
+"through obscurity (that is if you don't use and delete the default admin "
+"user)."
+msgstr ""
+"Un text que es mostrarà al lloc. Per defecte és el vostre nom d'usuari."
+
+#: importer.php:1098
+msgid "User's Jabber account."
+msgstr ""
+
+#: importer.php:1099
+msgid "User's AOL IM account."
+msgstr ""
+
+#: importer.php:1100
+msgid "User's Yahoo IM account."
+msgstr ""
+
+#: importer.php:1101
+msgid "Using the WordPress format for this kind of data Y-m-d H:i:s."
+msgstr ""
+
+#: importer.php:1108
+msgid "WooCommerce is activated"
+msgstr ""
+
+#: importer.php:1109
+msgid ""
+"You can use those labels if you want to set data adapted to the WooCommerce "
+"default user columns"
+msgstr ""
+
+#: importer.php:1137
+msgid "Important notice"
+msgstr ""
+
+#: importer.php:1138
+msgid ""
+"You can upload as many files as you want, but all must have the same "
+"columns. If you upload another file, the columns will change to the form of "
+"last file uploaded."
+msgstr ""
+
+#: importer.php:1141
+msgid "Any question about it"
+msgstr ""
+
+#: importer.php:1144
+msgid "Free support (in WordPress forums):"
+msgstr ""
+
+#: importer.php:1145
+msgid "Premium support (with a quote):"
+msgstr ""
+
+#: importer.php:1150
+msgid "Example"
+msgstr "Exemple:"
+
+#: importer.php:1151
+msgid "Download this"
+msgstr "Baixa el fitxer"
+
+#: importer.php:1151
+msgid "file"
+msgstr "fitxer"
+
+#: importer.php:1151
+msgid "to test"
+msgstr "per provar"
+
+#: importer.php:1167
+msgid "Mail options"
+msgstr ""
+
+#: importer.php:1169
+msgid "You can set your own SMTP and other mail details"
+msgstr ""
+
+#: importer.php:1174
+msgid "WordPress automatic emails users updated"
+msgstr ""
+
+#: importer.php:1178
+msgid "Send automattic WordPress emails?"
+msgstr ""
+
+#: importer.php:1182
+msgid ""
+"Deactivate WordPress automattic email when an user is updated or his "
+"password is changed"
+msgstr ""
+
+#: importer.php:1183
+msgid ""
+"Activate WordPress automattic email when an user is updated or his password "
+"is changed"
+msgstr ""
+
+#: importer.php:1185
+msgid ""
+"When you update an user or change his password, WordPress prepare and send "
+"automattic email, you can deactivate it here."
+msgstr ""
+
+#: importer.php:1193
+msgid "Customize the email that can be sent when importing users"
+msgstr ""
+
+#: importer.php:1195
+msgid "Mail subject :"
+msgstr "Assumpte del missatge:"
+
+#: importer.php:1203
+msgid "username to login"
+msgstr ""
+
+#: importer.php:1204
+msgid "user password"
+msgstr "contrasenya de l'usuari"
+
+#: importer.php:1205
+msgid "current site login url"
+msgstr ""
+
+#: importer.php:1206
+msgid "lost password url"
+msgstr ""
+
+#: importer.php:1207
+msgid "password reset url"
+msgstr ""
+
+#: importer.php:1208
+msgid "user email"
+msgstr "correu electrònic de l'usuari"
+
+#: importer.php:1209
+msgid ""
+"You can also use any WordPress user standard field or an own metadata, if "
+"you have used it in your CSV. For example, if you have a first_name column, "
+"you could use **first_name** or any other meta_data like **my_custom_meta**"
+msgstr ""
+
+#: importer.php:1261
+msgid "Execute an import of users periodically"
+msgstr ""
+
+#: importer.php:1267
+msgid "Path of file that are going to be imported"
+msgstr ""
+
+#: importer.php:1269 importer.php:1360
+msgid "Insert complete path to the file"
+msgstr ""
+
+#: importer.php:1274
+msgid "Period"
+msgstr ""
+
+#: importer.php:1277
+msgid "Hourly"
+msgstr ""
+
+#: importer.php:1278
+msgid "Twicedaily"
+msgstr ""
+
+#: importer.php:1279
+msgid "Daily"
+msgstr ""
+
+#: importer.php:1281
+msgid "How often the event should reoccur?"
+msgstr ""
+
+#: importer.php:1285
+msgid "Activate periodical import?"
+msgstr ""
+
+#: importer.php:1291
+msgid "Send mail when using periodical import?"
+msgstr ""
+
+#: importer.php:1297
+msgid "Send mail also to users that are being updated?"
+msgstr ""
+
+#: importer.php:1303
+msgid "Delete users that are not present in the CSV?"
+msgstr ""
+
+#: importer.php:1312 importer.php:1314
+msgid "Delete posts of deled users without assing to any user"
+msgstr ""
+
+#: importer.php:1326
+msgid ""
+"After delete users, we can choose if we want to assign their posts to "
+"another user. Please do not delete them or posts will be deleted."
+msgstr ""
+
+#: importer.php:1336 importer.php:1338
+msgid "Disable role assignement in cron import"
+msgstr ""
+
+#: importer.php:1349
+msgid "Which role would be used to import users?"
+msgstr ""
+
+#: importer.php:1353
+msgid "Move file after import?"
+msgstr ""
+
+#: importer.php:1366
+msgid "Last actions of schedule task"
+msgstr ""
+
+#: importer.php:1373
+msgid "Save schedule options"
+msgstr ""
+
+#: importer.php:1380
+msgid ""
+"Are you sure to delete all users that are not present in the CSV? This "
+"action cannot be undone."
+msgstr ""
+
+#: importer.php:1412
+msgid "Do you like it?"
+msgstr ""
+
+#: importer.php:1415
+msgid "buy me a coffee"
+msgstr ""
+
+#: importer.php:1416
+msgid "Hi! we are"
+msgstr ""
+
+#: importer.php:1416
+msgid "and"
+msgstr ""
+
+#: importer.php:1416
+msgid "from"
+msgstr "des de"
+
+#: importer.php:1416
+msgid "developers of this plugin."
+msgstr ""
+
+#: importer.php:1417
+msgid ""
+"We have been spending many hours to develop this plugin. <br>If you like and "
+"use this plugin, you can <strong>buy us a cup of coffee</strong>."
+msgstr ""
+
+#: smtp.php:26 smtp.php:245
+msgid "Send Test"
+msgstr ""
+
+#: smtp.php:40
+msgid "Test mail to "
+msgstr ""
+
+#: smtp.php:41
+msgid ""
+"This is a test email generated by the Import User From CSV With Meta "
+"WordPress plugin."
+msgstr ""
+
+#: smtp.php:79
+msgid "Message sent successfully"
+msgstr "El missatge s'ha enviat correctament"
+
+#: smtp.php:83
+msgid "Test Message Sent"
+msgstr ""
+
+#: smtp.php:84
+msgid "The result was:"
+msgstr ""
+
+#: smtp.php:86
+msgid "The full debugging output is shown below:"
+msgstr ""
+
+#: smtp.php:88
+msgid "The SMTP debugging output is shown below:"
+msgstr ""
+
+#: smtp.php:119
+msgid "Import User From CSV With Meta - SMTP server options"
+msgstr ""
+
+#: smtp.php:123
+msgid "Global options"
+msgstr ""
+
+#: smtp.php:124
+msgid ""
+"Do you want to use your own SMTP settings for this plugin or the WordPress "
+"settings."
+msgstr ""
+
+#: smtp.php:128
+msgid "Settings"
+msgstr "Paràmetres"
+
+#: smtp.php:131
+msgid "Use plugin SMTP settings"
+msgstr ""
+
+#: smtp.php:133
+msgid "Use this settings to send mail."
+msgstr ""
+
+#: smtp.php:135
+msgid "Use WordPress general settings to send mail."
+msgstr ""
+
+#: smtp.php:143
+msgid "From Email"
+msgstr "Adreça d'origen"
+
+#: smtp.php:145
+msgid ""
+"You can specify the email address that emails should be sent from. If you "
+"leave this blank, the default email will be used."
+msgstr ""
+
+#: smtp.php:145
+msgid ""
+"<strong>Please Note:</strong> You appear to be using a version of WordPress "
+"prior to 2.3. Please ignore the From Name field and instead enter Name&lt;"
+"email@domain.com&gt; in this field."
+msgstr ""
+
+#: smtp.php:148
+msgid "From Name"
+msgstr ""
+
+#: smtp.php:150
+msgid ""
+"You can specify the name that emails should be sent from. If you leave this "
+"blank, the emails will be sent from WordPress."
+msgstr ""
+
+#: smtp.php:156 smtp.php:159
+msgid "Mailer"
+msgstr ""
+
+#: smtp.php:161
+msgid "Send emails of this plugin via SMTP."
+msgstr ""
+
+#: smtp.php:163
+msgid "Use the PHP mail() function to send emails."
+msgstr ""
+
+#: smtp.php:171 smtp.php:174
+msgid "Return Path"
+msgstr ""
+
+#: smtp.php:176
+msgid "Set the return-path to match the From Email"
+msgstr ""
+
+#: smtp.php:182
+msgid "SMTP Options"
+msgstr ""
+
+#: smtp.php:183
+msgid "These options only apply if you have chosen to send mail by SMTP above."
+msgstr ""
+
+#: smtp.php:187
+msgid "SMTP Host"
+msgstr ""
+
+#: smtp.php:191
+msgid "SMTP Port"
+msgstr ""
+
+#: smtp.php:195 smtp.php:198
+msgid "Encryption"
+msgstr "Encriptació:"
+
+#: smtp.php:200
+msgid "No encryption."
+msgstr "Sense encriptar"
+
+#: smtp.php:202
+msgid "Use SSL encryption."
+msgstr ""
+
+#: smtp.php:204
+msgid ""
+"Use TLS encryption. This is not the same as STARTTLS. For most servers SSL "
+"is the recommended option."
+msgstr ""
+
+#: smtp.php:208
+msgid "Authentication"
+msgstr "Autenticació"
+
+#: smtp.php:211
+msgid "No: Do not use SMTP authentication."
+msgstr ""
+
+#: smtp.php:213
+msgid "Yes: Use SMTP authentication."
+msgstr ""
+
+#: smtp.php:214
+msgid "If this is set to no, the values below are ignored."
+msgstr ""
+
+#: smtp.php:227
+msgid "Save Changes"
+msgstr "Desa els canvis"
+
+#: smtp.php:234
+msgid "Send a Test Email"
+msgstr "En via correu electrònic de prova"
+
+#: smtp.php:240
+msgid "To:"
+msgstr "Per a:"
+
+#: smtp.php:242
+msgid ""
+"Type an email address here and then click Send Test to generate a test email."
+msgstr ""
+"Escriu una adreça electrònica i feu clic a Envia test per generar un correu "
+"de prova."
+
+#~ msgid "Cron import"
+#~ msgstr "Inicia la importació"
+
+#~ msgid "Problems with user %s. Skiping importation"
+#~ msgstr "Hi ha problemes amb l'usuari %s. Salta la importació"
+
+#~ msgid "No user has been imported correctly"
+#~ msgstr "No s'ha importat cap usuari"
+
+#~ msgid "required"
+#~ msgstr "requerit"
+
+#~ msgid "Import users"
+#~ msgstr "Importa usuaris"
