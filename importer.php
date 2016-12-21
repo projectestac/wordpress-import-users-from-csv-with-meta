@@ -4,7 +4,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false ){?>
 	<div class="wrap">
-		<h2>Importing users</h2>	
+		<!-- // XTEC ************ MODIFICAT - Add support language
+		// 2016.12.21 @xaviernietosanchez -->
+		<h2><?php _e('Importing users','import-users-from-csv-with-meta'); ?></h2>
+		<!-- ************ ORIGINAL
+		<h2>Importing users</h2>
+		// ************ FI -->
 		<?php
 			set_time_limit(0);
 			
@@ -509,7 +514,18 @@ function acui_options()
 		      <br>
 		    </div>
 
+		    <!--
+		    // XTEC ************ MODIFICAT - Add whitespaces to correcte read
+		    // 2016.12.21 @xaviernietosanchez
+		    -->
+		    <h3 class="hndle"><span>&nbsp;&nbsp;&nbsp;<?php _e( 'Old CSV files uploaded', 'import-users-from-csv-with-meta' ); ?></span></h3>
+		    <!--
+		    // ************ ORIGINAL
+		    /*
 		    <h3 class="hndle"><span>&nbsp;<?php _e( 'Old CSV files uploaded', 'import-users-from-csv-with-meta' ); ?></span></h3>
+		    */
+		    // ************ FI
+		    -->
 
 		    <div class="inside" style="display: block;">
 		    	<p><?php _e( 'For security reasons you should delete this files, probably they would be visible in the Internet if a bot or someone discover the URL. You can delete each file or maybe you want delete all CSV files you have uploaded:', 'import-users-from-csv-with-meta' ); ?></p>
@@ -523,7 +539,18 @@ function acui_options()
 		    			else
 		    				$date = get_the_date();
 		    		?>
+		    		<!--
+				    // XTEC ************ MODIFICAT - Fix php syntax error
+				    // 2016.12.21 @xaviernietosanchez
+				    -->
+				    <li><a href="<?php echo wp_get_attachment_url( get_the_ID() ); ?>"><?php the_title(); ?></a> <?php _e( 'uploaded on', 'import-users-from-csv-with-meta' ); ?> <?php echo $date; ?> <input type="button" value="<?php _e( 'Delete', 'import-users-from-csv-with-meta' ); ?>" class="delete_attachment" attach_id="<?php the_ID(); ?>" /></li>
+				    <!--
+				    // ************ ORIGINAL
+				    /*
 		    		<li><a href="<?php echo wp_get_attachment_url( get_the_ID() ); ?>"><?php the_title(); ?></a> _e( 'uploaded on', 'import-users-from-csv-with-meta' ) . ' ' . <?php echo $date; ?> <input type="button" value="<?php _e( 'Delete', 'import-users-from-csv-with-meta' ); ?>" class="delete_attachment" attach_id="<?php the_ID(); ?>" /></li>
+				    */
+				    // ************ FI
+				    -->
 		    		<?php endwhile; ?>
 		    		<?php wp_reset_postdata(); ?>
 		    	</ul>
