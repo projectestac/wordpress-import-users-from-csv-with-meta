@@ -82,6 +82,12 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 				if( empty($data[0]) )
 					continue;
 
+				// XTEC ************ AFEGIT - If username is 'xtecadmin' do nothing
+				// 2016.12.21 @xaviernietonsanchez
+				if( strcasecmp( $data[0], 'xtecadmin' ) == 0 )
+					continue;
+				// ************ FI
+
 				if( count( $data ) == 1 )
 					$data = $data[0];
 				
