@@ -3,8 +3,8 @@ Contributors: hornero, carazo
 Donate link: http://paypal.me/codection
 Tags: csv, import, importer, meta data, meta, user, users, user meta,  editor, profile, custom, fields, delimiter, update, insert
 Requires at least: 3.4
-Tested up to: 4.6
-Stable tag: 1.9.9.6
+Tested up to: 4.7.1
+Stable tag: 1.10.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,23 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.10.2 =
+* 	New User Approve support fixed thanks to @stephanemartinw (https://wordpress.org/support/topic/new-user-approve-support/#post-8749012)
+
+= 1.10.1 =
+* 	Plugin can now import serialized data.
+*	New filter added: $data[$i] = apply_filters( 'pre_acui_import_single_user_single_data', $data[$i], $headers[$i], $i); now you can manage each single data for each user, maybe easier to use than pre_acui_import_single_user_data
+
+
+= 1.9.9.9 =
+* 	Now you can automatically rename file after move it. Then you won't lost any file you have imported (thanks to @charlesgodwin)
+
+= 1.9.9.8 =
+* 	Password bug fixed. Now it works as it should (like it is explained in documentation)
+
+= 1.9.9.7 =
+* 	Bug fixed in importer now value 0 is not considered as empty thanks to @lafare (https://wordpress.org/support/topic/importing-values-equal-to-0/#post-8609191)
 
 = 1.9.9.6 =
 * 	From now we are going to keep old versions available in repository

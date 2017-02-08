@@ -79,7 +79,8 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 				}
 
 				for($i = 0; $i < count($data); $i++){
-					$data[ $i ] = acui_string_conversion( $data[$i] );
+					$data[$i] = acui_string_conversion( $data[$i] );
+					$data[$i] = maybe_unserialize( $data[$i] );
 				}
 				
 				if($row == 0):
@@ -159,7 +160,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 							if( $user->user_login == $username ){
 								$user_id = $id;
 								
-								if( $password_position !== false )
+								if( $password !== "" )
 									wp_set_password( $password, $user_id );
 
 								if( !empty( $email ) ) {
@@ -199,7 +200,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 						$user_object = get_user_by( "login", $username );
 						$user_id = $user_object->ID;
 
-						if( $password_position !== false )
+						if( $password !== "" )
 							wp_set_password( $password, $user_id );
 
 						if( !empty( $email ) ) {
@@ -223,7 +224,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 	                    $data[0] = __( 'User already exists as:', 'import-users-from-csv-with-meta' ) . $user_object->user_login . '<br/>' . __( '(in this CSV file is called:', 'import-users-from-csv-with-meta' ) . $username . ")";
 	                    $problematic_row = true;
 
-	                    if( $password_position !== false )
+	                    if( $password !== "" )
 	                        wp_set_password( $password, $user_id );
 
 	                    $created = false;
@@ -273,12 +274,14 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 
 					// New User Approve
 					if( $approve_users_new_user_appove == "approve" )
-						update_user_meta( $user_id, "approved", true );
+						update_user_meta( $user_id, "pw_user_status", "approved" );
 					else
 						update_user_meta( $user_id, "pending", true );
 						
-					if($columns > 2){
+					if( $columns > 2 ){
 						for( $i=2 ; $i<$columns; $i++ ):
+							$data[$i] = apply_filters( 'pre_acui_import_single_user_single_data', $data[$i], $headers[$i], $i);
+
 							if( !empty( $data ) ){
 								if( strtolower( $headers[ $i ] ) == "password" ){ // passwords -> continue
 									continue;
@@ -309,7 +312,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 								} 
 								else{ // wp_usermeta data
 									
-									if( empty( $data[ $i ] ) ){
+									if( $data[ $i ] === '' ){
 										if( $empty_cell_action == "delete" )
 											delete_user_meta( $user_id, $headers[ $i ] );
 										else
@@ -317,8 +320,6 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 									}
 									else
 										update_user_meta( $user_id, $headers[ $i ], $data[ $i ] );
-
-
 								}
 
 							}
@@ -858,6 +859,11 @@ function acui_options()
 				</td>
 			</tr>
 			<tr valign="top">
+				<th scope="row"><?php _e( "Serialized data", 'import-users-from-csv-with-meta' ); ?></th>
+				<td><?php _e( "Plugin can now import serialized data. You have to use the serialized string directly in the CSV cell in order the plugin will be able to understand it as an serialized data instead as any other string.", 'import-users-from-csv-with-meta' ); ?>
+				</td>
+			</tr>
+			<tr valign="top">
 				<th scope="row"><?php _e( 'WordPress default profile data', 'import-users-from-csv-with-meta' ); ?></th>
 				<td><?php _e( "You can use those labels if you want to set data adapted to the WordPress default user columns (the ones who use the function", 'import-users-from-csv-with-meta' ); ?> <a href="http://codex.wordpress.org/Function_Reference/wp_update_user">wp_update_user</a>)
 					<ol>
@@ -998,6 +1004,7 @@ function acui_options()
 	$role = get_option( "acui_cron_role");
 	$move_file_cron = get_option( "acui_move_file_cron");
 	$path_to_move = get_option( "acui_cron_path_to_move");
+	$path_to_move_auto_rename = get_option( "acui_cron_path_to_move_auto_rename");
 	$log = get_option( "acui_cron_log");
 
 	if( empty( $cron_activated ) )
@@ -1026,6 +1033,9 @@ function acui_options()
 
 	if( empty( $path_to_move ) )
 		$path_to_move = dirname( __FILE__ ) . '/move.csv';
+
+	if( empty( $path_to_move_auto_rename ) )
+		$path_to_move_auto_rename = false;
 
 	if( empty( $log ) )
 		$log = "No tasks done yet.";
@@ -1129,12 +1139,24 @@ function acui_options()
 							<input type="checkbox" name="move-file-cron" value="yes" <?php if( $move_file_cron == true ) echo "checked='checked'"; ?>/>
 						</div>
 
-						<div id="move-file-cron-cell" style="margin-left:25px;">
+						<div class="move-file-cron-cell" style="margin-left:25px;">
 							<input placeholder="<?php _e( 'Insert complete path to the file', 'import-users-from-csv-with-meta'); ?>" type="text" name="path_to_move" id="path_to_move" value="<?php echo $path_to_move; ?>" style="width:70%;" />
 							<p class="description"><?php _e( 'You have to introduce the path to file, i.e.:', 'import-users-from-csv-with-meta'); ?> <?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/move.csv</p>
 						</div>
 					</td>
-				</tr>				
+				</tr>
+				<tr class="form-field form-required move-file-cron-cell">
+					<th scope="row"><label for="move-file-cron"><?php _e( 'Auto rename after move?', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td>
+						<div style="float:left;">
+							<input type="checkbox" name="path_to_move_auto_rename" value="yes" <?php if( $path_to_move_auto_rename == true ) echo "checked='checked'"; ?>/>
+						</div>
+
+						<div style="margin-left:25px;">
+							<p class="description"><?php _e( 'Your file will be renamed after moved, so you will not lost any version of it. The way to rename will be append the time stamp using this date format: YmdHis.', 'import-users-from-csv-with-meta'); ?></p>
+						</div>
+					</td>
+				</tr>			
 				<tr class="form-field form-required">
 					<th scope="row"><label for="log"><?php _e( 'Last actions of schedule task', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
@@ -1162,10 +1184,12 @@ function acui_options()
 		    });
 
 		    $( "[name='move-file-cron']" ).change(function() {
-		        if( $(this).is( ":checked" ) )
-		        	$( '#move-file-cron-cell' ).show();
-		        else
-		        	$( '#move-file-cron-cell' ).hide();
+		        if( $(this).is( ":checked" ) ){
+		        	$( '.move-file-cron-cell' ).show();
+		        }
+		        else{
+		        	$( '.move-file-cron-cell' ).hide();
+		        }
 		    });
 
 		    <?php if( $cron_delete_users == '' ): ?>
@@ -1173,7 +1197,7 @@ function acui_options()
 		    <?php endif; ?>
 
 		    <?php if( !$move_file_cron ): ?>
-		    $( '#move-file-cron-cell' ).hide();
+		    $( '.move-file-cron-cell' ).hide();
 		    <?php endif; ?>
 		});
 		</script>

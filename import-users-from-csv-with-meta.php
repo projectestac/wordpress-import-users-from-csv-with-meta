@@ -4,7 +4,7 @@ Plugin Name: Import users from CSV with meta
 Plugin URI: http://www.codection.com
 Description: This plugins allows to import users using CSV files to WP database automatically
 Author: codection
-Version: 1.9.9.6
+Version: 1.10.2
 Author URI: http://codection.com
 */
 
@@ -56,6 +56,8 @@ function acui_activate(){
 	add_option( "acui_send_mail_updated" );
 	add_option( "acui_cron_delete_users" );
 	add_option( "acui_cron_path_to_file" );
+	add_option( "acui_cron_path_to_move" );
+	add_option( "acui_cron_path_to_move_auto_rename" );
 	add_option( "acui_cron_period" );
 	add_option( "acui_cron_role" );
 	add_option( "acui_cron_log" );
@@ -84,6 +86,8 @@ function acui_delete_options(){
 	delete_option( "acui_send_mail_updated" );
 	delete_option( "acui_cron_delete_users" );
 	delete_option( "acui_cron_path_to_file" );
+	delete_option( "acui_cron_path_to_move" );
+	delete_option( "acui_cron_path_to_move_auto_rename" );
 	delete_option( "acui_cron_period" );
 	delete_option( "acui_cron_role" );
 	delete_option( "acui_cron_log" );
@@ -362,6 +366,11 @@ function acui_manage_cron_process( $form_data ){
 	else
 		update_option( "acui_move_file_cron", false );
 
+	if( isset( $form_data["path_to_move_auto_rename"] ) && $form_data["path_to_move_auto_rename"] == "yes" )
+		update_option( "acui_cron_path_to_move_auto_rename", true );
+	else
+		update_option( "acui_cron_path_to_move_auto_rename", false );
+
 	update_option( "acui_cron_path_to_file", $form_data["path_to_file"] );
 	update_option( "acui_cron_path_to_move", $form_data["path_to_move"] );
 	update_option( "acui_cron_period", $form_data["period"] );
@@ -400,6 +409,23 @@ function acui_cron_process(){
 	$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/><br/>';
 
 	update_option( "acui_cron_log", $message );
+}
+
+add_action( 'acui_cron_process', 'acui_cron_process_auto_rename', 99 );
+function acui_cron_process_auto_rename () {
+  if( get_option( "acui_cron_path_to_move_auto_rename" ) !== 'yes' )
+  	return;
+
+  $movefile  = get_option( "acui_cron_path_to_move");
+  if ($movefile && file_exists($movefile)) {
+    $parts = pathinfo($movefile);
+    $filename = $parts['filename'];
+    if ($filename){
+      $date = date('YmdHis'); 
+      $newfile = $parts['dirname'] . '/' . $filename .'_' . $date . '.' . $parts['extension'];
+      rename($movefile , $newfile);
+    } 
+  }
 }
 
 function acui_extra_user_profile_fields( $user ) {
