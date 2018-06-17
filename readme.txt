@@ -1,10 +1,10 @@
 === Import users from CSV with meta ===
-Contributors: hornero, carazo
+Contributors: carazo, hornero
 Donate link: http://paypal.me/codection
 Tags: csv, import, importer, meta data, meta, user, users, user meta,  editor, profile, custom, fields, delimiter, update, insert
 Requires at least: 3.4
-Tested up to: 4.7.1
-Stable tag: 1.10.2
+Tested up to: 4.9.4
+Stable tag: 1.11.3.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,11 +28,12 @@ Clean and easy-to-use Import users plugin. It includes custom user meta to be in
 
 In Codection we have more plugins, please take a look to them.
 
-*	[Clean Login a plugin to create your own register, log in, lost password and update profile forms](https://wordpress.org/plugins/clean-login/) (free)
 *	[RedSys Gateway for WooCommerce Pro a plugin to connect your WooCommerce to RedSys](http://codection.com/producto/redsys-gateway-for-woocommerce) (premium)
 *	[Ceca Gateway for WooCommerce Pro a plugin to connect your WooCommerce to Ceca](http://codection.com/producto/ceca-gateway-for-woocommerce-pro/) (premium)
 *	[BBVA Bancomer for WooCommerce Pro a plugin to connect your WooCommerce to BBVA Bancomer](http://codection.com/producto/bbva-bancomer-mexico-gateway-for-woocommerce-pro/) (premium)
 *	[RedSys Button for WordPress a plugin to receive payments using RedSys in WordPress without using WooCommerce](http://codection.com/producto/redsys-button-wordpress/) (premium)
+*	[RedSys Gateway for WP Booking Calendar Pro a plugin to receive payments using RedSys in WordPress using WP Booking Calendar Pro](https://codection.com/producto/redsys-gateway-for-wp-booking-calendar-pro/) (premium)
+*	[Clean Login a plugin to create your own register, log in, lost password and update profile forms](https://wordpress.org/plugins/clean-login/) (free)
 
 ## **Basics**
 
@@ -60,7 +61,6 @@ Plugin will automatically detect:
 * It also will **auto detect line-ending** to prevent problems with different OS.
 * Finally, it will **detect the delimiter** being used in CSV file ("," or ";" or "|")
 
-
 == Screenshots ==
 
 1. Plugin link from dashboard
@@ -70,6 +70,148 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.11.3.4 =
+*	Bug fixed: thanks to @oldfieldmike for reporting and fixing a bug present when BuddyPress was active (https://wordpress.org/support/topic/bp_xprofile_group/#post-10265833)
+
+= 1.11.3.3 =
+*	Added compatibility to import levels from Indeed Ultimate Membership Pro
+*	Fixed role problems when importing
+
+= 1.11.3.2 =
+*	Patreon link included and some other improvements to make easier support this develop
+*	Deprecated notices included about SMTP settings in this plugin
+
+= 1.11.3.1 =
+*	Thanks to Sebastian Mellmann(@xenator) a bug have been solved in password management in new users
+
+= 1.11.3 =
+*	Thanks to @xenator you can now import users with Allow Multiple Accounts with same Mail via cron
+
+= 1.11.2 =
+*	Problem with WordPress default emails fixed
+
+= 1.11.1 =
+*	Sidebar changed
+*	Readme completed
+
+= 1.11 =
+*	You can now import users from the frontend using a shortcode thanks to Nelson Artz Group GmbH & Co. KG
+
+= 1.10.13 =
+*	You can now import User Groups (https://wordpress.org/plugins/user-groups/) and assign them to the users
+
+= 1.10.12 =
+*	You can now import WP User Groups (https://es.wordpress.org/plugins/wp-user-groups/) and assign them to the users thanks to the support of Arturas & Luis, Lda.
+
+= 1.10.11.1 =
+*	Debug notice shown fixed (thanks for submiting the bug @anieves (https://wordpress.org/support/topic/problem-using-wp-members-with-import-users-from-csv-2/#post-10035037)
+
+= 1.10.11 =
+*	Administrator are not deleted in cron task
+*	Some hashed passwords was not being imported correctly because of wp_unslash() function into wp_insert_user(), issue fixed
+
+= 1.10.10 =
+*	Thanks to Attainable Adventure Cruising Ltd now the system to import passwords hashed directly from the CSV has been fixed
+*	Thanks to Kevin Price-Ward and Peri Lane now the system does not include the default role when creating a new user
+*	Plugin tested up to WordPress 4.9.4
+
+= 1.10.9.1 =
+*	Thanks to @lucile-agence-pulsi for reporting a bug (https://wordpress.org/support/topic/show-extra-profile-fields/) now this is solved
+
+= 1.10.9 =
+*	Thanks to the support of Studio MiliLand (http://www.mililand.com) we can now import data to Paid Membership Pro Plugin
+
+= 1.10.8.2 =
+*	Thanks to @Carlos Herrera we can now import date fields from BuddyPress
+
+= 1.10.8.1 =
+*	Bug fixed
+
+= 1.10.8 =
+*	New system for include addons
+* 	You can now import data from WooCommerce Membership thanks to Lukas from Kousekmusic.cz
+*	Tested up to WordPress 4.9
+
+= 1.10.7.5 =
+* 	Bug solved in cron import, now mails not being sent to user who are being updated unless you activate those mails
+
+= 1.10.7.4 =
+* 	Plugin now remember if user has selected or not mail sending when doing a manual import, to select by default this option next time
+
+= 1.10.7.3 =
+* 	Some of the plugins options are disabled by default to prevent unwanted mail sending
+
+= 1.10.7.2 =
+* 	Improve email notification disable
+
+= 1.10.7.1 =
+* 	Sending mail in standard import bug solved, thanks to @manverupl for the error report.
+
+= 1.10.7 =
+*	New feature thanks to Todd Zaroban (@tzarob) now you can choose if override or not current roles of each user when you are updating them
+*	Problem solved in repeated email module thanks to @damienper (https://wordpress.org/support/topic/error-in-email_repeated-php/)
+* 	Problem solved in mail sending with cron thanks to @khansadi (https://wordpress.org/support/topic/no-email-is-sent-to-new-users-when-created-via-corn-import/)
+
+= 1.10.6.9 =
+*	Thanks to Peri Lane from Apis Productions you can now import roles from CSV. Read documentation to see the way to work.
+
+= 1.10.6.8.1 =
+*	Thanks to @fiddla for debugging all this, as update_option with a value equals to true is saved as 1 in the database, we couldn't use the ==! or === operator to see if the option was active or not. Sorry for so many updates those days with this problems and thanks for the debugging
+
+= 1.10.6.8 =
+*	Bug fixed (now yes) when moving file including date and time thanks to @fiddla
+
+= 1.10.6.7 =
+*	Bug fixed when moving file including date and time
+
+= 1.10.6.6 =
+*	Bug fixed thanks to @ov3rfly (https://wordpress.org/support/topic/wrong-path-to-users-page-after-import/)
+*	Documentation also included in home page of the plugins thanks to suggestions and threads in forum
+
+= 1.10.6.5 =
+*	If multisite is enabled it adds the user to the blog thanks to Rudolph Koegelenberg
+*	Tested up to 4.8
+
+= 1.10.6.4 =
+*	Documentation fixed: if user id is present in the CSV but not in the database, it cannot be used to create a new user
+
+= 1.10.6.3 =
+*	New hook added do_action('post_acui_import_single_user', $headers, $data, $user_id );
+
+= 1.10.6.2 =
+*	Added documentation about locale and BuddyPress Extendend Profile
+*	Header changed to avoid any problem about plugin header
+
+= 1.10.6.1 =
+*	Fix error in importer.php about delete users (https://wordpress.org/support/topic/wp_delete_user-undefined/#post-8925051)
+
+= 1.10.6 =
+*	Now you can hide the extra profile fields created with the plugin thanks to Steph O'Brien (Ruddy Good)
+
+= 1.10.5 =
+*	Now you can import list of elements using :: as separator and it can also be done in BuddyPress profile fields thanks to Jon Eiseman
+*	Fixes in SMTP settings
+*	SMTP settings now is a new tab
+
+= 1.10.4 =
+*	Now you can assign BuddyPress groups and assign roles in import thanks to TNTP (tntp.org)
+* 	Import optimization
+*	Readme fixed
+
+= 1.10.3.1 =
+*	Bug fixed in SMTP settings page
+
+= 1.10.3 =
+*	Plugin is now prepared for internacionalization using translate.wordpress.org
+
+= 1.10.2.2 =
+*	German translation fixed thanks to @mfgmicha
+*	locale now is considered a data from WordPress user so it won't be shown in profiles
+
+= 1.10.2.1 =
+*	German translation fixed thanks to @barcelo
+*	System compatibility updated
 
 = 1.10.2 =
 * 	New User Approve support fixed thanks to @stephanemartinw (https://wordpress.org/support/topic/new-user-approve-support/#post-8749012)
@@ -415,7 +557,63 @@ Plugin will automatically detect:
 
 == Frequently Asked Questions ==
 
-*   Not yet
+= Columns position =
+
+You should fill the first two columns with the next values: Username, Email.
+
+The next columns are totally customizable and you can use whatever you want. All rows must contains same columns. User profile will be adapted to the kind of data you have selected. If you want to disable the extra profile information, please deactivate this plugin after make the import.
+
+= id column =
+
+You can use a column called id in order to make inserts or updates of an user using the ID used by WordPress in the wp_users table. We have two different cases:
+
+*	If id doesn't exist in your users table: WordPress core does not allow us insert it, so it will throw an error of kind: invalid_user_id
+*	If id exists: plugin check if username is the same, if yes, it will update the data, if not, it ignores the cell to avoid problems
+
+= Passwords =
+
+We can use a column called "Password" to manage a string that contains user passwords. We have different options for this case:
+
+*	If you don't create a column for passwords: passwords will be generated automatically
+*	If you create a column for passwords: if cell is empty, password won't be updated; if cell has a value, it will be used
+
+= Serialized data =
+
+Plugin can import serialized data. You have to use the serialized string directly in the CSV cell in order the plugin will be able to understand it as an serialized data instead as any other string.
+
+= Lists =
+
+Plugin can import lists as an array. Use this separator: :: two colons, inside the cell in order to split the string in a list of items.
+
+= WordPress default profile data =
+
+You can use those labels if you want to set data adapted to the WordPress default user columns (the ones who use the function wp_update_user)
+
+*	user_nicename: A string that contains a URL-friendly name for the user. The default is the user's username.
+*	user_url: A string containing the user's URL for the user's web site.
+*	display_name: A string that will be shown on the site. Defaults to user's username. It is likely that you will want to change this, for both appearance and security through 	*	obscurity (that is if you don't use and delete the default admin user).
+*	nickname: The user's nickname, defaults to the user's username.
+* 	first_name: The user's first name.
+*	last_name: The user's last name.
+*	description: A string containing content about the user.
+*	jabber: User's Jabber account.
+*	aim: User's AOL IM account.
+*	yim: User's Yahoo IM account.
+*	user_registered: Using the WordPress format for this kind of data Y-m-d H:i:s.
+
+= Multiple imports =
+
+You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.
+
+= Free and premium support =
+
+You can get:
+
+*	Free support [in WordPress forums](https://wordpress.org/support/plugin/import-users-from-csv-with-meta)
+*	Premium support [writing directly to contacto@codection.com](mailto:contacto@codection.com).
+
+= Customizations, addons, develops... =
+[Write u directly to contacto@codection.com](mailto:contacto@codection.com).
 
 == Installation ==
 
@@ -429,3 +627,5 @@ Now going through the points above, you should now see a new&nbsp;_Import users 
 [Plugin link from dashboard](http://ps.w.org/import-users-from-csv-with-meta/assets/screenshot-1.png)
 
 If you get any error after following through the steps above please contact us through item support comments so we can get back to you with possible helps in installing the plugin and more.
+
+Please read documentation before start using this plugin.

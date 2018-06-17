@@ -2,7 +2,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
-function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false ){?>
+function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false, $is_frontend = false ){?>
 	<div class="wrap">
 		<h2>Importing users</h2>	
 		<?php
@@ -13,6 +13,8 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 			global $wpdb;
 			global $wp_users_fields;
 			global $wp_min_fields;
+			global $acui_fields;
+			$acui_restricted_fields = acui_get_restricted_fields();
 
 			if( is_plugin_active( 'wp-access-areas/wp-access-areas.php' ) ){
 				$wpaa_labels = WPAA_AccessArea::get_available_userlabels(); 
@@ -38,7 +40,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 			$headers = array();
 			$headers_filtered = array();
 			$update_existing_users = $form_data["update_existing_users"];
-			$role = $form_data["role"];
+			$role_default = $form_data["role"];
 			$update_roles_existing_users = $form_data["update_roles_existing_users"];
 			$empty_cell_action = $form_data["empty_cell_action"];
 
@@ -46,17 +48,45 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 				$activate_users_wp_members = "no_activate";
 			else
 				$activate_users_wp_members = $form_data["activate_users_wp_members"];
-
-			if( empty( $form_data["allow_multiple_accounts"] ) )
-				$allow_multiple_accounts = "not_allowed";
-			else
-				$allow_multiple_accounts = $form_data["allow_multiple_accounts"];
-
+	
+			if( $is_cron ){
+				if( get_option( "acui_cron_allow_multiple_accounts" ) == "allowed" ){
+					$allow_multiple_accounts = "allowed";						
+				}
+				else {
+					$allow_multiple_accounts = "not_allowed";
+				}
+			}
+			else {
+				if( empty( $form_data["allow_multiple_accounts"] ) )
+					$allow_multiple_accounts = "not_allowed";	
+				else
+					$allow_multiple_accounts = $form_data["allow_multiple_accounts"];
+			}
+	
 			if( empty( $form_data["approve_users_new_user_appove"] ) )
 				$approve_users_new_user_appove = "no_approve";
 			else
 				$approve_users_new_user_appove = $form_data["approve_users_new_user_appove"];
-	
+
+			// save mail sending preferences
+			if( isset( $form_data["sends_email"] ) && $form_data["sends_email"] == 'yes' )
+  				update_option( "acui_manually_send_mail", true );
+  			else
+				update_option( "acui_manually_send_mail", false );
+
+			if( isset( $form_data["send_email_updated"] ) && $form_data["send_email_updated"] == 'yes' )
+  				update_option( "acui_manually_send_mail_updated", true );
+  			else
+				update_option( "acui_manually_send_mail_updated", false );
+
+			// disable WordPress default emails if this must be disabled
+			if( !get_option('acui_automattic_wordpress_email') ){
+				add_filter( 'send_email_change_email', 'acui_return_false', 999 );
+				add_filter( 'send_password_change_email', 'acui_return_false', 999 );
+			}
+
+			// action
 			echo "<h3>" . __('Ready to registers','import-users-from-csv-with-meta') . "</h3>";
 			echo "<p>" . __('First row represents the form of sheet','import-users-from-csv-with-meta') . "</p>";
 			$row = 0;
@@ -80,7 +110,11 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 
 				for($i = 0; $i < count($data); $i++){
 					$data[$i] = acui_string_conversion( $data[$i] );
-					$data[$i] = maybe_unserialize( $data[$i] );
+
+					if( is_serialized( $data[$i] ) ) // serialized
+						$data[$i] = maybe_unserialize( $data[$i] );
+					elseif( strpos( $data[$i], "::" ) !== false  ) // list of items
+						$data[$i] = explode( "::", $data[$i] );
 				}
 				
 				if($row == 0):
@@ -94,17 +128,17 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 					$password_position = false;
 					$id_position = false;
 					
-					foreach ( $wp_users_fields as $wp_users_field ) {
-						$positions[ $wp_users_field ] = false;
+					foreach ( $acui_restricted_fields as $acui_restricted_field ) {
+						$positions[ $acui_restricted_field ] = false;
 					}
 
-					foreach($data as $element){
+					foreach( $data as $element ){
 						$headers[] = $element;
 
-						if( in_array( strtolower($element) , $wp_users_fields ) )
-							$positions[ strtolower($element) ] = $i;
+						if( in_array( strtolower( $element ) , $acui_restricted_fields ) )
+							$positions[ strtolower( $element ) ] = $i;
 
-						if( !in_array( strtolower( $element ), $wp_users_fields ) && !in_array( $element, $wp_min_fields ) && !in_array( $element, $buddypress_fields ) )
+						if( !in_array( strtolower( $element ), $acui_restricted_fields ) && !in_array( $element, $buddypress_fields ) )
 							$headers_filtered[] = $element;
 
 						$i++;
@@ -134,6 +168,8 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 					$problematic_row = false;
 					$password_position = $positions["password"];
 					$password = "";
+					$role_position = $positions["role"];
+					$role = "";
 					$id_position = $positions["id"];
 					
 					if ( !empty( $id_position ) )
@@ -146,7 +182,15 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 					if( $password_position === false )
 						$password = wp_generate_password();
 					else
-						$password = $data[ $password_position ];
+						$password = $data[ $password_position ];					
+
+					if( $role_position === false )
+						$role = $role_default;
+					else{
+						$roles_cells = explode( ',', $data[ $role_position ] );
+						array_walk( $roles_cells, 'trim' );
+						$role = $roles_cells;
+					}
 
 					if( !empty( $id ) ){ // if user have used id
 						if( acui_user_id_exists( $id ) ){
@@ -230,11 +274,21 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 	                    $created = false;
 					}
 					elseif( email_exists( $email ) && $allow_multiple_accounts == "allowed" ){ // if the email is registered and repeated emails are allowed
+						// if user is new, but the password in csv is empty, generate a password for this user
+						if( $password === "" ) {
+							$password = wp_generate_password();
+						}
+						
 						$hacked_email = acui_hack_email( $email );
 						$user_id = wp_create_user( $username, $password, $hacked_email );
 						acui_hack_restore_remapped_email_address( $user_id, $email );
 					}
 					else{
+						// if user is new, but the password in csv is empty, generate a password for this user
+						if( $password === "" ) {
+							$password = wp_generate_password();
+						}
+						
 						$user_id = wp_create_user( $username, $password, $email );
 					}
 						
@@ -247,23 +301,39 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 					$users_registered[] = $user_id;
 					$user_object = new WP_User( $user_id );
 
-					if( $created || $update_roles_existing_users == 'yes'){
+					if( $created || $update_roles_existing_users != 'no' ){
 						if(!( in_array("administrator", acui_get_roles($user_id), FALSE) || is_multisite() && is_super_admin( $user_id ) )){
 							
-							$default_roles = $user_object->roles;
-							foreach ( $default_roles as $default_role ) {
-								$user_object->remove_role( $default_role );
+							if( $update_roles_existing_users == 'yes' || $created ){
+								$default_roles = $user_object->roles;
+								foreach ( $default_roles as $default_role ) {
+									$user_object->remove_role( $default_role );
+								}
+
+								if( !empty( $role ) ){
+									if( is_array( $role ) ){
+										foreach ($role as $single_role) {
+											$user_object->add_role( $single_role );
+										}	
+									}
+									else{
+										$user_object->add_role( $role );
+									}
+								}
 							}
-							
-							if( !empty( $role ) ){
-								if( is_array( $role ) ){
-									foreach ($role as $single_role) {
-										$user_object->add_role( $single_role );
-									}	
-								}
-								else{
-									$user_object->add_role( $role );
-								}
+						}
+					}
+
+					// Multisite add user to current blog
+					if( is_multisite() ){
+						if( !empty( $role ) ){
+							if( is_array( $role ) ){
+								foreach ($role as $single_role) {
+									add_user_to_blog( get_current_blog_id(), $user_id, $single_role );
+								}	
+							}
+							else{
+								add_user_to_blog( get_current_blog_id(), $user_id, $role );
 							}
 						}
 					}
@@ -279,7 +349,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 						update_user_meta( $user_id, "pending", true );
 						
 					if( $columns > 2 ){
-						for( $i=2 ; $i<$columns; $i++ ):
+						for( $i = 2 ; $i < $columns; $i++ ):
 							$data[$i] = apply_filters( 'pre_acui_import_single_user_single_data', $data[$i], $headers[$i], $i);
 
 							if( !empty( $data ) ){
@@ -287,13 +357,18 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 									continue;
 								}
 								elseif( strtolower( $headers[ $i ] ) == "user_pass" ){ // hashed pass
-							        $wpdb->update( $wpdb->users, array( 'user_pass' => $data[ $i ] ), array( 'ID' => $user_id ) );
+									$wpdb->update( $wpdb->users, array( 'user_pass' => wp_slash( $data[ $i ] ) ), array( 'ID' => $user_id ) );
+									wp_cache_delete( $user_id, 'users' );
+							        continue;
 								}
 								elseif( in_array( $headers[ $i ], $wp_users_fields ) ){ // wp_user data									
-									if( empty( $data[ $i ] ) && $empty_cell_action == "leave" )
+									if( empty( $data[ $i ] ) && $empty_cell_action == "leave" ){
 										continue;
-									else
-										wp_update_user( array( 'ID' => $user_id, $headers[ $i ] => $data[ $i ] ) );									
+									}
+									else{
+										wp_update_user( array( 'ID' => $user_id, $headers[ $i ] => $data[ $i ] ) );
+										continue;
+									}										
 								}
 								elseif( strtolower( $headers[ $i ] ) == "wp-access-areas" && is_plugin_active( 'wp-access-areas/wp-access-areas.php' ) ){ // wp-access-areas
 									$active_labels = array_map( 'trim', explode( "#", $data[ $i ] ) );
@@ -306,10 +381,62 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 											acui_set_cap_for_user( $wpa_label->capability , $user_object , false );
 										}
 									}
+
+									continue;
 								}
-								elseif( in_array( $headers[ $i ], $buddypress_fields ) ){ // buddypress
-									xprofile_set_field_data( $headers[ $i ], $user_id, $data[ $i ] );
-								} 
+								elseif( ( $bpf_pos = array_search( $headers[ $i ], $buddypress_fields ) ) !== false ){ // buddypress
+                                    switch( $buddypress_types[ $bpf_pos ] ){
+                                        case 'datebox':
+                                            $date = $data[$i];
+                                            switch( true ){
+                                                case is_numeric( $date ):
+                                                    $UNIX_DATE = ($date - 25569) * 86400;
+                                                    $datebox = gmdate("Y-m-d H:i:s", $UNIX_DATE);break;
+                                                case preg_match('/(\d{1,2})[\/-](\d{1,2})[\/-]([4567890]{1}\d{1})/',$date,$match):
+                                                    $match[3]='19'.$match[3];
+                                                case preg_match('/(\d{1,2})[\/-](\d{1,2})[\/-](20[4567890]{1}\d{1})/',$date,$match):
+                                                case preg_match('/(\d{1,2})[\/-](\d{1,2})[\/-](19[4567890]{1}\d{1})/',$date,$match):
+                                                    $datebox= ($match[3].'-'.$match[2].'-'.$match[1]);
+                                                    break;
+
+                                                default:
+                                                    $datebox = $date;
+                                            }
+
+                                            $datebox = strtotime( $datebox );
+                                            xprofile_set_field_data( $headers[$i], $user_id, date( 'Y-m-d H:i:s', $datebox ) );
+                                            unset( $datebox );
+                                            break;
+                                        default:
+                                            xprofile_set_field_data( $headers[$i], $user_id, $data[$i] );
+                                    }
+
+									continue;
+								}
+								elseif( $headers[ $i ] == 'bp_group' ){ // buddypress group
+									$groups = explode( ',', $data[ $i ] );
+									$groups_role = explode( ',', $data[ $positions[ 'bp_group_role' ] ] );
+
+								    for( $j = 0; $j < count( $groups ); $j++ ){
+								    	$group_id = BP_Groups_Group::group_exists( $groups[ $j ] );
+
+								    	if( !empty( $group_id ) ){
+								    		groups_join_group( $group_id, $user_id );
+
+								    		if( $groups_role[ $j ] == 'Moderator' ){
+								    			groups_promote_member( $user_id, $group_id, 'mod' );
+								    		}
+								    		elseif( $groups_role[ $j ] == 'Administrator' ){
+								    			groups_promote_member( $user_id, $group_id, 'admin' );
+								    		}
+								    	}
+								    }
+								    	
+								    continue;							    
+								}
+								elseif( $headers[ $i ] == 'bp_group_role' ){
+									continue;
+								}
 								else{ // wp_usermeta data
 									
 									if( $data[ $i ] === '' ){
@@ -318,38 +445,58 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 										else
 											continue;	
 									}
-									else
+									else{
 										update_user_meta( $user_id, $headers[ $i ], $data[ $i ] );
+										continue;
+									}
 								}
 
 							}
 						endfor;
 					}
 
+					do_action('post_acui_import_single_user', $headers, $data, $user_id );
+
 					$styles = "";
 					if( $problematic_row )
 						$styles = "background-color:red; color:white;";
 
 					echo "<tr style='$styles' ><td>" . ($row - 1) . "</td>";
-					foreach ($data as $element)
+					foreach ($data as $element){
+						if( is_array( $element ) )
+							$element = implode ( ',' , $element );
+
 						echo "<td>$element</td>";
+					}
 
 					echo "</tr>\n";
 
 					flush();
 
 					$mail_for_this_user = false;
-					if( $created )
-						$mail_for_this_user = true;
+					if( $is_cron ){
+						if( get_option( "acui_cron_send_mail" ) ){
+							if( $created || ( !$created && get_option( "acui_cron_send_mail_updated" ) ) ){
+								$mail_for_this_user = true;
+							}							
+						}
+					}
+					elseif( $is_frontend ){
+						if( get_option( "acui_frontend_send_mail" ) ){
+							if( $created || ( !$created && get_option( "acui_frontend_send_mail_updated" ) ) ){
+								$mail_for_this_user = true;
+							}							
+						}
+					}
 					else{
-						if( !$is_cron && isset( $form_data["send_email_updated"] ) && $form_data["send_email_updated"] )
-							$mail_for_this_user = true;
-						else if( $is_cron && get_option( "acui_send_mail_cron" ) )
-							$mail_for_this_user = true;
+						if( isset( $form_data["sends_email"] ) && $form_data["sends_email"] ){
+							if( $created || ( !$created && ( isset( $form_data["send_email_updated"] ) && $form_data["send_email_updated"] ) ) )
+								$mail_for_this_user = true;
+						}
 					}
 						
 					// send mail
-					if( isset( $form_data["sends_email"] ) && $form_data["sends_email"] && $mail_for_this_user ):
+					if( isset( $mail_for_this_user ) && $mail_for_this_user ):
 						$key = get_password_reset_key( $user_object );
 						$user_login= $user_object->user_login;
 						
@@ -379,11 +526,6 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 							$body_mail = str_replace("**" . $headers[ $i ] .  "**", $data[ $i ] , $body_mail);							
 						}
 
-						if( !get_option('acui_automattic_wordpress_email') ){
-							add_filter( 'send_email_change_email', '__return_false' );
-							add_filter( 'send_password_change_email', '__return_false' );
-						}
-						
 						$body_mail = wpautop( $body_mail );
 
 						add_filter( 'wp_mail_content_type', 'cod_set_html_content_type' );
@@ -402,13 +544,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 						else
 							wp_mail( $email, $subject, $body_mail );
 
-						remove_filter( 'wp_mail_content_type', 'cod_set_html_content_type' );
-
-						if( !get_option('acui_automattic_wordpress_email') ){
-							remove_filter( 'send_email_change_email', '__return_false' );
-							remove_filter( 'send_password_change_email', '__return_false' );
-						}
-
+						remove_filter( 'wp_mail_content_type', 'cod_set_html_content_type' );						
 					endif;
 
 				endif;
@@ -416,14 +552,26 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 				$row++;						
 			endwhile;
 
+			// let the filter of default WordPress emails as it were before deactivating them
+			if( !get_option('acui_automattic_wordpress_email') ){
+				remove_filter( 'send_email_change_email', 'acui_return_false', 999 );
+				remove_filter( 'send_password_change_email', 'acui_return_false', 999 );
+			}
+
+
 			if( $attach_id != 0 )
 				wp_delete_attachment( $attach_id );
 
 			// delete all users that have not been imported
 			if( $is_cron && get_option( "acui_cron_delete_users" ) ):
-				$all_users = get_users( array( 'fields' => array( 'ID' ) ) );
+				require_once( ABSPATH . 'wp-admin/includes/user.php');	
+
+				$all_users = get_users( array( 
+					'fields' => array( 'ID' ),
+					'role__not_in' => array( 'administrator' )
+				) );
 				$cron_delete_users_assign_posts = get_option( "acui_cron_delete_users_assign_posts");
-				
+
 				foreach ( $all_users as $user ) {
 					if( !in_array( $user->ID, $users_registered ) ){
 						if( !empty( $cron_delete_users_assign_posts ) && get_userdata( $cron_delete_users_assign_posts ) !== false ){
@@ -438,8 +586,12 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 
 			?>
 			</table>
-			<br/>
-			<p><?php _e( 'Process finished you can go', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo get_admin_url() . '/users.php'; ?>"><?php _e( 'here to see results', 'import-users-from-csv-with-meta' ); ?></a></p>
+
+			<?php if( !$is_frontend ): ?>
+				<br/>
+				<p><?php _e( 'Process finished you can go', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo get_admin_url( null, 'users.php' ); ?>"><?php _e( 'here to see results', 'import-users-from-csv-with-meta' ); ?></a></p>
+			<?php endif; ?>
+			
 			<?php
 			ini_set('auto_detect_line_endings',FALSE);
 			
@@ -449,8 +601,7 @@ function acui_import_users( $file, $form_data, $attach_id = 0, $is_cron = false 
 <?php
 }
 
-function acui_options() 
-{
+function acui_options(){
 	global $url_plugin;
 
 	if ( !current_user_can('create_users') ) {
@@ -467,8 +618,15 @@ function acui_options()
 		switch ( $tab ){
       		case 'homepage':
       			acui_fileupload_process( $_POST, false );
-
       			return;
+      		break;
+
+      		case 'frontend':
+      			acui_manage_frontend_process( $_POST );
+      		break;
+
+      		case 'columns':
+      			acui_manage_extra_profile_fields( $_POST );
       		break;
 
       		case 'mail-options':
@@ -496,7 +654,7 @@ function acui_options()
 
 	acui_check_options();
 ?>
-	<div class="wrap">	
+	<div class="wrap acui">	
 
 		<?php if( $old_csv_files->found_posts > 0 ): ?>
 		<div class="postbox">
@@ -530,13 +688,13 @@ function acui_options()
 		<div id='message' class='updated'><?php _e( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ); ?></div>
 		<div id='message-password' class='error'><?php _e( 'Please, read carefully how <strong>passwords are managed</strong> and also take note about capitalization, this plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></div>
 
-		<div style="float:left; width:80%;">
+		<div>
 			<h2><?php _e( 'Import users from CSV','import-users-from-csv-with-meta' ); ?></h2>
 		</div>
 
 		<div style="clear:both;"></div>
 
-		<div style="width:100%;">
+		<div class="main_bar">
 			<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8" onsubmit="return check();">
 			<table class="form-table">
 				<tbody>
@@ -551,7 +709,7 @@ function acui_options()
 				</tr>
 
 				<tr class="form-field">
-					<th scope="row"><label for="role"><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<th scope="row"><label for="role"><?php _e( 'Default role', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 					<?php 
 						$list_roles = acui_get_editable_roles(); 
@@ -564,7 +722,7 @@ function acui_options()
 						}
 					?>
 
-					<p class="description"><?php _e( 'If you choose more than one role, the roles would be assigned correctly but you should use some plugin like <a href="https://wordpress.org/plugins/user-role-editor/">User Role Editor</a> to manage them.', 'import-users-from-csv-with-meta' ); ?></p>
+					<p class="description"><?php _e( 'You can also import roles from a CSV column. Please read documentation tab to see how it can be done. If you choose more than one role, the roles would be assigned correctly but you should use some plugin like <a href="https://wordpress.org/plugins/user-role-editor/">User Role Editor</a> to manage them.', 'import-users-from-csv-with-meta' ); ?></p>
 					</td>
 				</tr>
 
@@ -573,7 +731,8 @@ function acui_options()
 					<td>
 						<select name="update_roles_existing_users">
 							<option value="no"><?php _e( 'No', 'import-users-from-csv-with-meta' ); ?></option>
-							<option value="yes"><?php _e( 'Yes', 'import-users-from-csv-with-meta' ); ?></option>
+							<option value="yes"><?php _e( 'Yes, update and override existing roles', 'import-users-from-csv-with-meta' ); ?></option>
+							<option value="yes_no_override"><?php _e( 'Yes, add new roles and not override existing ones', 'import-users-from-csv-with-meta' ); ?></option>
 						</select>
 					</td>
 				</tr>
@@ -609,6 +768,7 @@ function acui_options()
 					}
 
 					$buddypress_fields = array();
+					$buddypress_types=array();
 					$profile_groups = BP_XProfile_Group::get( array( 'fetch_fields' => true	) );
 
 					if ( !empty( $profile_groups ) ) {
@@ -616,6 +776,7 @@ function acui_options()
 							if ( !empty( $profile_group->fields ) ) {				
 								foreach ( $profile_group->fields as $field ) {
 									$buddypress_fields[] = $field->name;
+									$buddypress_types[] = $field->type;
 								}
 							}
 						}
@@ -639,7 +800,7 @@ function acui_options()
 				<?php if( is_plugin_active( 'wp-members/wp-members.php' ) ): ?>
 
 				<tr class="form-field form-required">
-					<th scope="row"><label>Y</label></th>
+					<th scope="row"><label>Activate user when they are being imported?</label></th>
 					<td>
 						<select name="activate_users_wp_members">
 							<option value="no_activate"><?php _e( 'Do not activate users', 'import-users-from-csv-with-meta' ); ?></option>
@@ -708,8 +869,14 @@ function acui_options()
 				<tr class="form-field">
 					<th scope="row"><label for="user_login"><?php _e( 'Send mail', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<p><?php _e( 'Do you wish to send a mail with credentials and other data?', 'import-users-from-csv-with-meta' ); ?> <input type="checkbox" name="sends_email" value = "<?php _e('yes','import-users-from-csv-with-meta'); ?>"></p>
-						<p><?php _e( 'Do you wish to send this mail also to users that are being updated? (not only to the one which are being created)', 'import-users-from-csv-with-meta' ); ?> <input type="checkbox" name="send_email_updated" value = "<?php _e( 'yes', 'import-users-from-csv-with-meta' ); ?>" checked="checked"></p>
+						<p>
+							<?php _e( 'Do you wish to send a mail with credentials and other data?', 'import-users-from-csv-with-meta' ); ?> 
+							<input type="checkbox" name="sends_email" value="yes" <?php if( get_option( 'acui_manually_send_mail' ) ): ?> checked="checked" <?php endif; ?>>
+						</p>
+						<p>
+							<?php _e( 'Do you wish to send this mail also to users that are being updated? (not only to the one which are being created)', 'import-users-from-csv-with-meta' ); ?>
+							<input type="checkbox" name="send_email_updated" value="yes" <?php if( get_option( 'acui_manually_send_mail_updated' ) ): ?> checked="checked" <?php endif; ?>>
+						</p>
 					</td>
 				</tr>
 				</tbody>
@@ -719,6 +886,52 @@ function acui_options()
 
 			<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
 			</form>
+		</div>
+
+		<div class="sidebar">
+			<div class="sidebar_section become_patreon">
+		    	<a class="patreon" color="primary" type="button" name="become-a-patron" data-tag="become-patron-button" href="https://www.patreon.com/bePatron?c=1741454" role="button">
+		    		<div><span><?php _e( 'Become a patron', 'import-users-from-csv-with-meta'); ?></span></div>
+		    	</a>
+		    </div>
+
+		    <?php if( substr( get_locale(), 0, 2 ) == 'es' ): ?>
+			<div class="sidebar_section" id="webempresa">
+				<h3>Tu web más rápida con Webempresa</h3>
+				<ul>
+					<li><label>Además ahora un <a href="https://codection.com/25-de-descuento-en-el-mejor-hosting-en-espanol-con-webempresa/">25% de descuento</a>.</label></li>
+				</ul>
+				<a href="https://codection.com/25-de-descuento-en-el-mejor-hosting-en-espanol-con-webempresa/" target="_blank">
+					<img src="<?php echo plugin_dir_url( __FILE__ ); ?>assets/webempresa_logo.png">
+				</a>
+			</div>
+			<?php else: ?>
+			<div class="sidebar_section" style="padding:0 !important;border:none !important;background:none !important;">
+				<a href="https://codection.com/how-to-transfer-your-website-to-inmotion-hosting/" target="_blank">
+					<img src="<?php echo plugin_dir_url( __FILE__ ); ?>assets/codection-inmotion.png">
+				</a>
+			</div>
+			<?php endif; ?>
+			
+			<div class="sidebar_section" id="vote_us">
+				<h3>Rate Us</h3>
+				<ul>
+					<li><label>If you like it, Please vote and support us.</label></li>
+				</ul>
+			</div>
+			<div class="sidebar_section">
+				<h3>Having Issues?</h3>
+				<ul>
+					<li><label>You can create a ticket</label> <a target="_blank" href="http://wordpress.org/support/plugin/import-users-from-csv-with-meta"><label>WordPress support forum</label></a></li>
+					<li><label>You can ask for premium support</label> <a target="_blank" href="mailto:contacto@codection.com"><label>contacto@codection.com</label></a></li>
+				</ul>
+			</div>
+			<div class="sidebar_section">
+				<h3>Donate</h3>
+				<ul>
+					<li><label>If you appreciate our work and you want to help us to continue developing it and giving the best support</label> <a target="_blank" href="https://paypal.me/imalrod"><label>donate</label></a></li>
+				</ul>
+			</div>
 		</div>
 
 	</div>
@@ -784,6 +997,11 @@ function acui_options()
 			$("#upload_file,#introduce_path").toggle();
 		} );
 
+		$("#vote_us").click(function(){
+			var win=window.open("http://wordpress.org/support/view/plugin-reviews/import-users-from-csv-with-meta?free-counter?rate=5#postform", '_blank');
+			win.focus();
+		});
+
 	} );
 	</script>
 
@@ -791,16 +1009,102 @@ function acui_options()
 
 	break;
 
-	case 'columns':
+	case 'frontend':
 
-	$headers = get_option("acui_columns"); 
+	$send_mail_frontend = get_option( "acui_frontend_send_mail");
+	$send_mail_updated_frontend = get_option( "acui_frontend_send_mail_updated");
+	$role = get_option( "acui_frontend_role");
+	
+	if( empty( $send_mail_frontend ) )
+		$send_mail_frontend = false;
+
+	if( empty( $send_mail_updated_frontend ) )
+		$send_mail_updated_frontend = false;
+	?>
+		<h3><?php _e( "Execute an import of users in the frontend", 'import-users-from-csv-with-meta' ); ?></h3>
+
+		<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
+			<table class="form-table">
+				<tbody>
+				<tr class="form-field">
+					<th scope="row"><label for=""><?php _e( 'Use this shortcode in any page or post', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td>
+						<pre>[import-users-from-csv-with-meta]</pre>
+						<input class="button-primary" type="button" id="copy_to_clipboard" value="<?php _e( 'Copy to clipboard', 'import-users-from-csv-with-meta'); ?>"/>
+					</td>
+				</tr>
+				<tr class="form-field form-required">
+					<th scope="row"><label for="send-mail-frontend"><?php _e( 'Send mail when using frontend import?', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td>
+						<input type="checkbox" name="send-mail-frontend" value="yes" <?php if( $send_mail_frontend == true ) echo "checked='checked'"; ?>/>
+					</td>
+				</tr>
+				<tr class="form-field form-required">
+					<th scope="row"><label for="send-mail-updated-frontend"><?php _e( 'Send mail also to users that are being updated?', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td>
+						<input type="checkbox" name="send-mail-updated-frontend" value="yes" <?php if( $send_mail_updated_frontend == true ) echo "checked='checked'"; ?>/>
+					</td>
+				</tr>
+				<tr class="form-field form-required">
+					<th scope="row"><label for="role"><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td>
+						<select id="role-frontend" name="role-frontend">
+							<?php 
+								if( $role == '' )
+									echo "<option selected='selected' value=''>" . __( 'Disable role assignement in frontend import', 'import-users-from-csv-with-meta' )  . "</option>";
+								else
+									echo "<option value=''>" . __( 'Disable role assignement in frontend import', 'import-users-from-csv-with-meta' )  . "</option>";
+
+								$list_roles = acui_get_editable_roles();								
+								foreach ($list_roles as $key => $value) {
+									if($key == $role)
+										echo "<option selected='selected' value='$key'>$value</option>";
+									else
+										echo "<option value='$key'>$value</option>";
+								}
+							?>
+						</select>
+						<p class="description"><?php _e( 'Which role would be used to import users?', 'import-users-from-csv-with-meta' ); ?></p>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+			<input class="button-primary" type="submit" value="<?php _e( 'Save frontend import options', 'import-users-from-csv-with-meta'); ?>"/>
+		</form>
+
+		<script>
+		jQuery( document ).ready( function( $ ){
+			$( '#copy_to_clipboard' ).click( function(){
+				var $temp = $("<input>");
+				$("body").append($temp);
+				$temp.val( '[import-users-from-csv-with-meta]' ).select();
+				document.execCommand("copy");
+				$temp.remove();
+			} );
+		});
+		</script>
+	<?php break;
+
+	case 'columns':
+		$show_profile_fields = get_option( "acui_show_profile_fields");
+		$headers = get_option("acui_columns"); 
 	?>
 
-		<h3><?php _e( 'Custom columns loaded', 'import-users-from-csv-with-meta' ); ?></h3>
+		<h3><?php _e( 'Extra profile fields', 'import-users-from-csv-with-meta' ); ?></h3>
 		<table class="form-table">
 		<tbody>
 			<tr valign="top">
-				<th scope="row"><?php _e( 'Columns loaded in previous files', 'import-users-from-csv-with-meta' ); ?></th>
+				<th scope="row"><?php _e( 'Show fields in profile?', 'import-users-from-csv-with-meta' ); ?></th>
+				<td>
+					<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
+						<input type="checkbox" name="show-profile-fields" value="yes" <?php if( $show_profile_fields == true ) echo "checked='checked'"; ?>>
+						<input type="hidden" name="show-profile-fields-action" value="update"/>
+						<input class="button-primary" type="submit" value="<?php _e( 'Save option', 'import-users-from-csv-with-meta'); ?>"/>
+					</form>
+				</td>
+			</tr>
+			<tr valign="top">
+				<th scope="row"><?php _e( 'Extra profile fields loadad in previous files', 'import-users-from-csv-with-meta' ); ?></th>
 				<td><small><em><?php _e( '(if you load another CSV with different columns, the new ones will replace this list)', 'import-users-from-csv-with-meta' ); ?></em></small>
 					<ol>
 						<?php 
@@ -844,7 +1148,7 @@ function acui_options()
 				<th scope="row"><?php _e( 'id', 'import-users-from-csv-with-meta' ); ?></th>
 				<td><?php _e( 'You can use a column called id in order to make inserts or updates of an user using the ID used by WordPress in the wp_users table. We have two different cases:', 'import-users-from-csv-with-meta' ); ?>
 					<ul style="list-style:disc outside none; margin-left:2em;">
-						<li><?php _e( "If id <strong>doesn't exist in your users table</strong>: user will be inserted", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "If id <strong>doesn't exist in your users table</strong>: WordPress core does not allow us insert it, so it will throw an error of kind: invalid_user_id", 'import-users-from-csv-with-meta' ); ?></li>
 						<li><?php _e( "If id <strong>exists</strong>: plugin check if username is the same, if yes, it will update the data, if not, it ignores the cell to avoid problems", 'import-users-from-csv-with-meta' ); ?></li>
 					</ul>
 				</td>
@@ -859,8 +1163,23 @@ function acui_options()
 				</td>
 			</tr>
 			<tr valign="top">
+				<th scope="row"><?php _e( "Roles", 'import-users-from-csv-with-meta' ); ?></th>
+				<td><?php _e( "Plugin can import roles from the CSV. This is how it works:", 'import-users-from-csv-with-meta' ); ?>
+					<ul style="list-style:disc outside none; margin-left:2em;">
+						<li><?php _e( "If you <strong>don't create a column for roles</strong>: roles would be chosen from the 'Default role' field in import screen.", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "If you <strong>create a column called 'role'</strong>: if cell is empty, roles would be chosen from 'Default role' field in import screen; if cell has a value, it will be used as role, if this role doesn't exist the default one would be used", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "Multiple roles can be imported creating <strong>a list of roles</strong> using commas to separate values.", 'import-users-from-csv-with-meta' ); ?></li>
+					</ul>
+				</td>
+			</tr>
+			<tr valign="top">
 				<th scope="row"><?php _e( "Serialized data", 'import-users-from-csv-with-meta' ); ?></th>
 				<td><?php _e( "Plugin can now import serialized data. You have to use the serialized string directly in the CSV cell in order the plugin will be able to understand it as an serialized data instead as any other string.", 'import-users-from-csv-with-meta' ); ?>
+				</td>
+			</tr>
+			<tr valign="top">
+				<th scope="row"><?php _e( "Lists", 'import-users-from-csv-with-meta' ); ?></th>
+				<td><?php _e( "Plugin can now import lists an array. Use this separator:", 'import-users-from-csv-with-meta'); ?> <strong>::</strong> <?php _e("two colons, inside the cell in order to split the string in a list of items.", 'import-users-from-csv-with-meta' ); ?>
 				</td>
 			</tr>
 			<tr valign="top">
@@ -881,6 +1200,7 @@ function acui_options()
 					</ol>
 				</td>
 			</tr>
+
 			<?php if( is_plugin_active( 'woocommerce/woocommerce.php' ) ): ?>
 
 				<tr valign="top">
@@ -910,8 +1230,28 @@ function acui_options()
 					</ol>
 				</td>
 				</tr>
+			<?php endif; ?>
 
-				<?php endif; ?>
+			<?php if( is_plugin_active( 'buddypress/bp-loader.php' ) ): ?>
+
+				<tr valign="top">
+					<th scope="row"><?php _e( "BuddyPress is activated", 'import-users-from-csv-with-meta' ); ?></th>
+					<td><?php _e( "You can use the <strong>profile fields</strong> you have created and also you can set one or more groups for each user. For example:", 'import-users-from-csv-with-meta' ); ?>
+					<ul style="list-style:disc outside none; margin-left:2em;">
+						<li><?php _e( "If you want to assign an user to a group you have to create a column 'bp_group' and a column 'bp_group_role'", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "Then in each cell you have to fill with the BuddyPress <strong>group slug</strong>", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "And the role assigned in this group: <em>Administrator, Moderator or Member</em>", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "You can do it with multiple groups at the same time using commas to separate different groups, in bp_group column, i.e.: <em>group_1, group_2, group_3</em>", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "But you will have to assign a role for each group: <em>Moderator,Moderator,Member,Member</em>", 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( "If you get some error of this kind:", 'import-users-from-csv-with-meta' ); ?> <code>Fatal error: Class 'BP_XProfile_Group'</code> <?php _e( "please enable Buddypress Extended Profile then import the csv file. You can then disable this afterwards", 'import-users-from-csv-with-meta' ); ?></li>
+					</ul>
+				</td>
+				</tr>
+
+			<?php endif; ?>
+
+			<?php do_action( 'acui_documentation_after_plugins_activated' ); ?>
+
 			<tr valign="top">
 				<th scope="row"><?php _e( "Important notice", 'import-users-from-csv-with-meta' ); ?></th>
 				<td><?php _e( "You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.", 'import-users-from-csv-with-meta' ); ?></td>
@@ -992,11 +1332,17 @@ function acui_options()
 
 	<?php break; ?>
 
+	<?php case 'smtp-settings': ?>
+
+	<?php acui_smtp(); ?>
+
+	<?php break; ?>
+
 	<?php case 'cron':
 
 	$cron_activated = get_option( "acui_cron_activated");
-	$send_mail_cron = get_option( "acui_send_mail_cron");
-	$send_mail_updated = get_option( "acui_send_mail_updated");
+	$send_mail_cron = get_option( "acui_cron_send_mail");
+	$send_mail_updated = get_option( "acui_cron_send_mail_updated");
 	$cron_delete_users = get_option( "acui_cron_delete_users");
 	$cron_delete_users_assign_posts = get_option( "acui_cron_delete_users_assign_posts");
 	$path_to_file = get_option( "acui_cron_path_to_file");
@@ -1006,6 +1352,7 @@ function acui_options()
 	$path_to_move = get_option( "acui_cron_path_to_move");
 	$path_to_move_auto_rename = get_option( "acui_cron_path_to_move_auto_rename");
 	$log = get_option( "acui_cron_log");
+	$allow_multiple_accounts = get_option("acui_cron_allow_multiple_accounts");
 
 	if( empty( $cron_activated ) )
 		$cron_activated = false;
@@ -1039,6 +1386,9 @@ function acui_options()
 
 	if( empty( $log ) )
 		$log = "No tasks done yet.";
+	
+	if( empty( $allow_multiple_accounts ) )
+		$allow_multiple_accounts = "not_allowed";
 
 	?>
 		<h3><?php _e( "Execute an import of users periodically", 'import-users-from-csv-with-meta' ); ?></h3>
@@ -1082,6 +1432,19 @@ function acui_options()
 						<input type="checkbox" name="send-mail-updated" value="yes" <?php if( $send_mail_updated == true ) echo "checked='checked'"; ?>/>
 					</td>
 				</tr>
+				
+				<?php if( is_plugin_active( 'allow-multiple-accounts/allow-multiple-accounts.php' ) ): ?>
+
+				<tr class="form-field form-required">
+					<th scope="row"><label><?php _e( 'Repeated email in different users?', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td>
+						<input type="checkbox" name="allow_multiple_accounts" value="yes" <?php if( $allow_multiple_accounts == "allowed" ) echo "checked='checked'"; ?>/>
+						<p class="description"><strong>(<?php _e( 'Only for', 'import-users-from-csv-with-meta' ); ?> <a href="https://wordpress.org/plugins/allow-multiple-accounts/"><?php _e( 'Allow Multiple Accounts', 'import-users-from-csv-with-meta' ); ?></a> <?php _e( 'users', 'import-users-from-csv-with-meta'); ?>)</strong>. <?php _e('Allow multiple user accounts to be created having the same email address.','import-users-from-csv-with-meta' ); ?></p>
+					</td>
+				</tr>
+
+				<?php endif; ?>
+				
 				<tr class="form-field form-required">
 					<th scope="row"><label for="cron-delete-users"><?php _e( 'Delete users that are not present in the CSV?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
@@ -1210,8 +1573,8 @@ function acui_options()
 
 	    <div class="inside" style="display: block;">
 	        <img src="<?php echo $url_plugin; ?>icon_coffee.png" alt="<?php _e( 'buy me a coffee', 'import-users-from-csv-with-meta' ); ?>" style=" margin: 5px; float:left;">
-	        <p><?php _e( 'Hi! we are', 'import-users-from-csv-with-meta'); ?> <a href="https://twitter.com/fjcarazo" target="_blank" title="Javier Carazo">Javier Carazo</a> <?php _e( 'and', 'import-users-from-csv-with-meta' ); ?> <a href="https://twitter.com/ahornero" target="_blank" title="Alberto Hornero">Alberto Hornero</a> <?php _e( 'from', 'import-users-from-csv-with-meta' ); ?> <a href="http://codection.com">Codection</a>, <?php _e("developers of this plugin.", 'import-users-from-csv-with-meta' ); ?></p>
-	        <p><?php _e( 'We have been spending many hours to develop this plugin. <br>If you like and use this plugin, you can <strong>buy us a cup of coffee</strong>.', 'import-users-from-csv-with-meta' ); ?></p>
+	        <p><?php _e( 'Hi! we are', 'import-users-from-csv-with-meta'); ?> <a href="https://twitter.com/fjcarazo" target="_blank" title="Javier Carazo">Javier Carazo</a> <?php _e( 'and all the team of', 'import-users-from-csv-with-meta' ); ?> <a href="http://codection.com">Codection</a>, <?php _e("developers of this plugin.", 'import-users-from-csv-with-meta' ); ?></p>
+	        <p><?php _e( 'We have been spending many hours to develop this plugin and answering questions in the forum to give you the best support. <br>If you like and use this plugin, you can <strong>buy us a cup of coffee</strong>.', 'import-users-from-csv-with-meta' ); ?></p>
 	        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 				<input type="hidden" name="cmd" value="_s-xclick">
 				<input type="hidden" name="hosted_button_id" value="QPYVWKJG4HDGG">
@@ -1219,6 +1582,14 @@ function acui_options()
 				<img alt="" border="0" src="https://www.paypalobjects.com/es_ES/i/scr/pixel.gif" width="1" height="1">
 			</form>
 	        <div style="clear:both;"></div>
+	    </div>
+
+	    <h3 class="hndle"><span>&nbsp;<?php _e( 'Or if you prefer, you can also help us becoming a Patreon:', 'import-users-from-csv-with-meta' ); ?></span></h3>
+
+	    <div class="inside acui" style="display: block;">
+	    	<a class="patreon" color="primary" type="button" name="become-a-patron" data-tag="become-patron-button" href="https://www.patreon.com/bePatron?c=1741454" role="button">
+	    		<div class="oosjif-1 jFPfxp"><span>Become a patron</span></div>
+	    	</a>
 	    </div>
 	</div>
 

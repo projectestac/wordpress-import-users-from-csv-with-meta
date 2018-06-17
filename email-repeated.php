@@ -21,7 +21,7 @@ function acui_hack_restore_remapped_email_address( $user_id, $email ) {
 
 	$wpdb->update(
 		$wpdb->users,
-		array( 'user_email' => $hacked_email ),
+		array( 'user_email' => $email ),
 		array( 'ID' => $user_id )
 	);
 

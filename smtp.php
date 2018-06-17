@@ -23,8 +23,7 @@ function acui_smtp() {
 	global $acui_smtp_options, $phpmailer;
 	
 	// Send a test mail if necessary
-	if (isset($_POST['acui_smpt_action']) && $_POST['acui_smpt_action'] == __('Send Test', 'acui') && isset($_POST['to'])) {
-		
+	if( isset( $_POST['acui_smpt_action'] ) && $_POST['acui_smpt_action'] == __('Send Test', 'acui') && isset( $_POST['to'] ) ){
 		check_admin_referer('test-email');
 
 		if ( !is_object( $phpmailer ) || !is_a( $phpmailer, 'PHPMailer' ) ) {
@@ -97,13 +96,12 @@ function acui_smtp() {
 		remove_action( 'phpmailer_init', 'acui_mailer_init' );
 	}
 
-	if (isset($_POST['option_page']) && $_POST['option_page'] == 'acui-smtp' ) {
+	if( isset( $_POST['acui_settings'] ) && !empty( $_POST['acui_settings'] ) ) {
 		check_admin_referer('email-config');
 
 		foreach ($acui_smtp_options as $name => $val) {
 			update_option( $name, $_POST[ $name ] );			
 		}
-
 	}
 
 	// in version 1.8.7 we include this new option, we fill it in a smart way
@@ -113,10 +111,12 @@ function acui_smtp() {
 		else
 			update_option( "acui_settings", "plugin" );
 	}
+
 ?>
 	
 <div class="wrap">
 	<h2><?php _e('Import User From CSV With Meta - SMTP server options', 'acui'); ?></h2>
+	<div style="background-color: red; color: white;">This feature is deprecated. Please use better a SMTP plugin from the repository specialized in this kind of configurations.</div>
 	<form method="post" action="" id="acui_smtp_options">
 		<?php wp_nonce_field('email-config'); ?>
 
@@ -224,16 +224,12 @@ function acui_smtp() {
 			</tr>
 		</table>
 
-		<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="<?php _e('Save Changes'); ?>" /></p>
-			<input type="hidden" name="action" value="update" />
-		</p>
-		
-		<input type="hidden" name="option_page" value="acui-smtp">
+		<p class="submit"><input type="submit" name="submit" id="submit" class="button-primary" value="<?php _e('Save Changes'); ?>" /></p>		
 	</form>
 
 	<h3><?php _e('Send a Test Email', 'acui'); ?></h3>
 
-	<form method="POST" action="<?php echo admin_url( 'tools.php?page=acui-smtp' ); ?>">
+	<form method="POST" action="">
 		<?php wp_nonce_field('test-email'); ?>
 		<table class="optiontable form-table">
 		<tr valign="top">
@@ -258,12 +254,12 @@ jQuery( document ).ready( function( $ ){
 	});
 
 	function disableControls(){
-		$("#acui_smtp_options :input").prop("disabled", true);
+		$("#acui_smtp_options :input").not(":input[type=submit],:input[type=hidden]").prop("disabled", true);
 		$("[name='acui_settings']").prop("disabled", false);
 	}
 
 	function enableControls(){
-		$("#acui_smtp_options :input").prop("disabled", false);	
+		$("#acui_smtp_options :input").not(":input[type=submit],:input[type=hidden]").prop("disabled", false);	
 	}
 
 	<?php if( get_option( "acui_settings" ) == "wordpress" ): ?>
