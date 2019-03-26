@@ -1,10 +1,10 @@
 === Import users from CSV with meta ===
 Contributors: carazo, hornero
-Donate link: http://paypal.me/codection
+Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, importer, meta data, meta, user, users, user meta,  editor, profile, custom, fields, delimiter, update, insert
 Requires at least: 3.4
-Tested up to: 4.9.4
-Stable tag: 1.11.3.4
+Tested up to: 5.1
+Stable tag: 1.14.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,25 +17,44 @@ Clean and easy-to-use Import users plugin. It includes custom user meta to be in
 *	Import CSV file with users directly to your WordPress
 *	Import thousends of users in only some seconds
 *	You can also import meta-data like data from WooCommerce customers using the correct meta_keys
-*	Send a mail to every new user
+*	You can assign roles while importing
+*	Send a mail to every new user, this mails can be saved as templates and are fully customizable
 *	Use your own 
 *	You can also update data of each user
 *	Assing a role
 *	Create a cron task to import users periodically
 *	Edit the metadata (you will be able to edit the metadata imported using metakeys directly in the profile of each user)
 *	Read our documentation
+*	Extend the plugin using the hooks we provide
 *	Ask anything in support forum, we try to give the best support
+
+Moreover this plugin is compatible with:
+
+*	WooCommerce: to import the customer data
+*	WooCommerce Membership: to import memberships
+*	BuddyPress: to import custom BuddyPress fields, groups and roles
+*	Paid Membership Pro: to import memberships
+*	Indeed Ultimate Membership Pro: to import memberships
+*	Allow Multiple Accounts: plugin will allow the same rules importing than this plugin
+*	New User Approve: you can import users and approbe/wait for approve them
+*	Users Group: to assign users to groups while importing
+*	WP LMS Course: to enroll users in the courses while importing
+*	WP Members: to import memberships
+*	WP Users Group: to assign users to groups while importing
 
 In Codection we have more plugins, please take a look to them.
 
-*	[RedSys Gateway for WooCommerce Pro a plugin to connect your WooCommerce to RedSys](http://codection.com/producto/redsys-gateway-for-woocommerce) (premium)
-*	[Ceca Gateway for WooCommerce Pro a plugin to connect your WooCommerce to Ceca](http://codection.com/producto/ceca-gateway-for-woocommerce-pro/) (premium)
-*	[BBVA Bancomer for WooCommerce Pro a plugin to connect your WooCommerce to BBVA Bancomer](http://codection.com/producto/bbva-bancomer-mexico-gateway-for-woocommerce-pro/) (premium)
-*	[RedSys Button for WordPress a plugin to receive payments using RedSys in WordPress without using WooCommerce](http://codection.com/producto/redsys-button-wordpress/) (premium)
+*	[RedSys Gateway for WooCommerce Pro a plugin to connect your WooCommerce to RedSys](https://codection.com/producto/redsys-gateway-for-woocommerce) (premium)
+*	[Ceca Gateway for WooCommerce Pro a plugin to connect your WooCommerce to Ceca](https://codection.com/producto/ceca-gateway-for-woocommerce-pro/) (premium)
+*	[BBVA Bancomer for WooCommerce Pro a plugin to connect your WooCommerce to BBVA Bancomer](https://codection.com/producto/bbva-bancomer-mexico-gateway-for-woocommerce-pro/) (premium)
+*	[RedSys Button for WordPress a plugin to receive payments using RedSys in WordPress without using WooCommerce](https://codection.com/producto/redsys-button-wordpress/) (premium)
+*	[RedSys Gateway for Contact Form 7 a plugin to receive payments using RedSys in WordPress using the popular contact plugin Contact Form 7](https://codection.com/producto/redsys-gateway-for-contact-form-7/) (premium)
+*	[Ceca Gateway for Contact Form 7 a plugin to receive payments using Ceca in WordPress using the popular contact plugin Contact Form 7](https://codection.com/producto/ceca-gateway-for-contact-form-7/) (premium)
 *	[RedSys Gateway for WP Booking Calendar Pro a plugin to receive payments using RedSys in WordPress using WP Booking Calendar Pro](https://codection.com/producto/redsys-gateway-for-wp-booking-calendar-pro/) (premium)
+*	[RedSys Gateway for Goodlayers Tourmaster Pro a plugin to receive payments using RedSys in WordPress using Goodlayers Tourmaster Pro](https://codection.com/producto/redsys-gateway-for-goodlayers-tourmaster-pro/) (premium)
 *	[Clean Login a plugin to create your own register, log in, lost password and update profile forms](https://wordpress.org/plugins/clean-login/) (free)
 
-## **Basics**
+### **Basics**
 
 *   Import users from a CSV easily
 *   And also extra profile information with the user meta data (included in the CSV with your custom fields)
@@ -43,7 +62,7 @@ In Codection we have more plugins, please take a look to them.
 *   All your users will be created/updated with the updated information, and of course including the user meta
 *   Autodetect delimiter compatible with `comma , `, `semicolon ; ` and `bar | `
 
-## **Usage**
+### **Usage**
 
 Once the plugin is installed you can use it. Go to Tools menu and there, there will be a section called _Insert users from CSV_. Just choose your CSV file and go!
 
@@ -59,7 +78,7 @@ Plugin will automatically detect:
 
 * Charset and set it to **UTF-8** to prevent problems with non-ASCII characters.
 * It also will **auto detect line-ending** to prevent problems with different OS.
-* Finally, it will **detect the delimiter** being used in CSV file ("," or ";" or "|")
+* Finally, it will **detect the delimiter** being used in CSV file
 
 == Screenshots ==
 
@@ -70,6 +89,129 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.14.0.3 =
+*	Fix to save email options bug (that appeared in last version)
+
+= 1.14.0.3 =
+*	Security fixes to prevent Reflected Cross Site Scripting (XSS) and Cross Site Request Forgery (CSRF), thanks to Application Security for reporting
+
+= 1.14.0.2 =
+*	get_users used memory improved filtering fields returned, thanks to @shortcutsolutions (https://wordpress.org/support/topic/import-page-no-longer-has-submit-button/#post-11309862)
+
+= 1.14.0.1 =
+*	Echo removed from class to prevent message on activation
+
+= 1.14 =
+*	Options management improved
+*	GUI improved
+*	Now you can change the role of users that are not in the CSV file thanks to California Advocates Management Services
+
+= 1.13.2 =
+*	Attachments in email templates and mail options now can be deleted thanks to Joel Frankwick
+
+= 1.13.1 =
+*	Email templates loads also the attachment in Mail options when they are selected thanks to Joel Frankwick
+
+= 1.13 =
+*	Now you can delete users that are not in the CSV file, not only when you are doing an import based on a cron task, but also when you do it from the dashboard or with the shortcode in the frontend thanks to mojosolo.com
+*	Documentation improved
+*	Bug fixed
+*	Tested up to 5.1
+
+= 1.12.6.2 =
+*	Notices fixed
+*	Some file deleted and some urls fixed
+
+= 1.12.6.1 =
+*	Plugin is now compatible with plugins that change login url, thanks to @2candela2 (https://wordpress.org/support/topic/make-it-compatible-with-plugins-that-change-login-url/)
+
+= 1.12.6 =
+*	wpml-config.xml added to improve compatibility with WPML
+*	Warnings fixed
+
+= 1.12.5.1 =
+*	Fixed some files that were not included in the trunk
+
+= 1.12.5 =
+*	New addon added thanks to @egraznov in order to make possible to import data from LifterLMS
+
+= 1.12.4 =
+*	New hooks added to make possible to include new tabs from an addon
+
+= 1.12.3.1 =
+*	Fatal error fixed in frontend tab
+
+= 1.12.3 =
+*	Integration with Paid Membership Pro improved thanks to @joneiseman (https://wordpress.org/support/topic/import-paid-membership-pro-fields-not-working/#post-11110984)
+
+= 1.12.2.3 =
+*	Readme updated
+
+= 1.12.2.2 =
+*	Readme fixed
+
+= 1.12.2.1 =
+*	SMTP settings removed, old link was yet placed and caused misunderstandings, thanks to @paulabender for the notice
+*	Tested up to WordPress 5.0.3
+
+= 1.12.2 =
+*	Extra check to avoid problems with CSV bad formed
+*	Plugin can now manage attachments in email sending and email templates thanks to Immersedtechnologies
+*	Part of the code has been rewritten using classes
+*	We have changed the way of detecting the delimiter (thanks to @chaskinsuk https://wordpress.org/support/topic/detect-delimiter-fails-with-serialized-data/)
+
+= 1.12.1 =
+*	Filter added to avoid script inside values of each cells to prevent XSS attacks, thanks for reporting Slawek Zytko
+
+= 1.12 =
+*	Plugin can now manage email templates for managing mails which are sent to users thanks to Immersedtechnologies
+
+= 1.11.3.17 =
+*	Documentation improved with some notes about roles management thanks to @stephenfourie (https://wordpress.org/support/topic/user-role-always-set-as-administrator/)
+
+= 1.11.3.16 =
+*	Redeclaration of str_getcsv removed, this is not necessary because of all new PHP versions contains it
+
+= 1.11.3.15 =
+*	Filters included for auto password generated
+*	Tested up to WordPress 5.0
+
+= 1.11.3.14 =
+*	Empty email check added thanks to @malcolm-oph (https://wordpress.org/support/topic/blank-email-field-in-csv-data-not-detected/)
+
+= 1.11.3.13 =
+*	Mail address with data of users can now be overriden thanks to a new filter
+
+= 1.11.3.12 =
+*	Plugin is now compatible with Vimeo Sync Membership thanks to Justin Snavely
+
+= 1.11.3.11 =
+*	Now you can use the WordPress loaded schedules in the cron import instead of the three default one thanks to PM2S
+*	Mail cron sending fixed issues
+
+= 1.11.3.10 =
+*	New hooks added thanks to Joel Frankwick in order to make possible to change default wp_mail() headers
+
+= 1.11.3.9 =
+*	New hooks added thanks to @malcolm-oph (https://wordpress.org/support/topic/using-filters-to-add-data-columns/)
+
+= 1.11.3.8.1 =
+*	Fixed bug thanks to @xenator for discovering the bug (https://wordpress.org/support/topic/uncaught-error-while-importing-users/#post-10618130)
+
+= 1.11.3.8 =
+*	Fixed mail sending in frontend import
+*	Now you can activate users with WP Members in frontend import
+*	Some fixes and warnings added
+
+= 1.11.3.7 =
+*	Fixes and improvements thanks to @malcolm-oph
+
+= 1.11.3.6 =
+*	Role import working in cron jobs
+
+= 1.11.3.5 =
+*	SMTP tab hidden for user which are not using this option
 
 = 1.11.3.4 =
 *	Bug fixed: thanks to @oldfieldmike for reporting and fixing a bug present when BuddyPress was active (https://wordpress.org/support/topic/bp_xprofile_group/#post-10265833)
@@ -497,7 +639,6 @@ Plugin will automatically detect:
 = 1.1.7 =
 *	Fixed problems with \n, \r and \n\r inside CSV fields. Thanks to Ted Stresen-Reuter for his help. We have changed our way to parse CSV files, now we use SplFileObject and we can solve this problem.
 
-=======
 = 1.2 =
 *	From this version, plugin can both insert new users and update new ones. Thanks to Nick Gallop from Weston Graphics.
 
@@ -507,7 +648,6 @@ Plugin will automatically detect:
 = 1.1.7 =
 *	Fixed problems with \n, \r and \n\r inside CSV fields. Thanks to Ted Stresen-Reuter for his help. We have changed our way to parse CSV files, now we use SplFileObject and we can solve this problem.
 
->>>>>>> .r1121403
 = 1.1.6 =
 *	You can import now user_registered but always in the correct format Y-m-d H:i:s
 
@@ -605,6 +745,14 @@ You can use those labels if you want to set data adapted to the WordPress defaul
 
 You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.
 
+= This plugin saved me a lot of time and work. Where can I donate? =
+
+Thanks, donations help us to continue improving our plugins and allow us to give the best support in the forums [Donate Here via PayPal.](https://codection.com/go/donate-import-users-from-csv-with-meta/)     
+
+= I'm not sure I will be able to import all users with correct data and roles. Will you do it for me? =
+
+Of course! In Codection we help you to import, migrate, synchronized, update or any other operation you will need to do with your users. Contact us at contacto@codection.com for more information.
+
 = Free and premium support =
 
 You can get:
@@ -613,7 +761,7 @@ You can get:
 *	Premium support [writing directly to contacto@codection.com](mailto:contacto@codection.com).
 
 = Customizations, addons, develops... =
-[Write u directly to contacto@codection.com](mailto:contacto@codection.com).
+[Write us directly to contacto@codection.com](mailto:contacto@codection.com).
 
 == Installation ==
 
