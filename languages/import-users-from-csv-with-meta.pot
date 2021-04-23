@@ -689,25 +689,25 @@ msgid "WordPress automatic emails users updated"
 msgstr ""
 
 #: importer.php:951
-msgid "Send automattic WordPress emails?"
+msgid "Send automatic WordPress emails?"
 msgstr ""
 
 #: importer.php:955
 msgid ""
-"Deactivate WordPress automattic email when an user is updated or his "
+"Deactivate WordPress automatic email when an user is updated or his "
 "password is changed"
 msgstr ""
 
 #: importer.php:956
 msgid ""
-"Activate WordPress automattic email when an user is updated or his password "
+"Activate WordPress automatic email when an user is updated or his password "
 "is changed"
 msgstr ""
 
 #: importer.php:958
 msgid ""
 "When you update an user or change his password, WordPress prepare and send "
-"automattic email, you can deactivate it here."
+"automatic email, you can deactivate it here."
 msgstr ""
 
 #: importer.php:966
@@ -798,7 +798,7 @@ msgid "Delete users that are not present in the CSV?"
 msgstr ""
 
 #: importer.php:1089 importer.php:1091
-msgid "Delete posts of deled users without assing to any user"
+msgid "Delete posts of deleted users without assigning to any user"
 msgstr ""
 
 #: importer.php:1103
@@ -808,7 +808,7 @@ msgid ""
 msgstr ""
 
 #: importer.php:1113 importer.php:1115
-msgid "Disable role assignement in cron import"
+msgid "Disable role assignment in cron import"
 msgstr ""
 
 #: importer.php:1126

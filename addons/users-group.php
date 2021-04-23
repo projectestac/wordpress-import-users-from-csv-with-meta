@@ -2,11 +2,13 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
-if( is_plugin_active( 'user-groups/user-groups.php' ) ){
-	add_filter( 'acui_restricted_fields', 'acui_ug_restricted_fields', 10, 1 );
-	add_action( 'acui_documentation_after_plugins_activated', 'acui_ug_documentation_after_plugins_activated' );
-	add_action( 'post_acui_import_single_user', 'acui_ug_post_import_single_user', 10, 3 );
+if( !is_plugin_active( 'user-groups/user-groups.php' ) ){
+	return;
 }
+
+add_filter( 'acui_restricted_fields', 'acui_ug_restricted_fields', 10, 1 );
+add_action( 'acui_documentation_after_plugins_activated', 'acui_ug_documentation_after_plugins_activated' );
+add_action( 'post_acui_import_single_user', 'acui_ug_post_import_single_user', 10, 3 );
 
 function acui_ug_restricted_fields( $acui_restricted_fields ){
 	return array_merge( $acui_restricted_fields, array( 'user_group' ) );

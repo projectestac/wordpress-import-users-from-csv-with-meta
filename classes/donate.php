@@ -1,16 +1,14 @@
 <?php
-
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
 class ACUI_Donate{
 	public static function message(){
-        global $acui_url_plugin;
 		?>
 <div class="postbox">
     <h3 class="hndle"><span>&nbsp;<?php _e( 'Do you like it?', 'import-users-from-csv-with-meta' ); ?></span></h3>
 
     <div class="inside" style="display: block;">
-        <img src="<?php echo $acui_url_plugin; ?>icon_coffee.png" alt="<?php _e( 'buy me a coffee', 'import-users-from-csv-with-meta' ); ?>" style=" margin: 5px; float:left;">
+        <img src="<?php echo esc_url( plugins_url( 'assets/icon_coffee.png', dirname( __FILE__ ) ) ); ?>" alt="<?php _e( 'buy me a coffee', 'import-users-from-csv-with-meta' ); ?>" style=" margin: 5px; float:left;">
         <p><?php _e( 'Hi! we are', 'import-users-from-csv-with-meta'); ?> <a href="https://twitter.com/fjcarazo" target="_blank" title="Javier Carazo">Javier Carazo</a> <?php _e( 'and all the team of', 'import-users-from-csv-with-meta' ); ?> <a href="http://codection.com">Codection</a>, <?php _e("developers of this plugin.", 'import-users-from-csv-with-meta' ); ?></p>
         <p><?php _e( 'We have been spending many hours to develop this plugin and answering questions in the forum to give you the best support. <br>If you like and use this plugin, you can <strong>buy us a cup of coffee</strong>.', 'import-users-from-csv-with-meta' ); ?></p>
         <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
@@ -25,7 +23,7 @@ class ACUI_Donate{
     <h3 class="hndle"><span>&nbsp;<?php _e( 'Or if you prefer, you can also help us becoming a Patreon:', 'import-users-from-csv-with-meta' ); ?></span></h3>
 
     <div class="inside acui" style="display: block;">
-    	<a class="patreon" color="primary" type="button" name="become-a-patron" data-tag="become-patron-button" href="https://www.patreon.com/bePatron?c=1741454" role="button">
+    	<a class="patreon" color="primary" type="button" name="become-a-patron" data-tag="become-patron-button" href="https://www.patreon.com/carazo" role="button">
     		<div class="oosjif-1 jFPfxp"><span>Become a patron</span></div>
     	</a>
     </div>

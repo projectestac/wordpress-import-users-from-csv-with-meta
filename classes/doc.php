@@ -12,7 +12,7 @@ class ACUI_Doc{
 				<th scope="row"><?php _e( 'Columns position', 'import-users-from-csv-with-meta' ); ?></th>
 				<td><small><em><?php _e( '(Documents should look like the one presented into screenshot. Remember you should fill the first two columns with the next values)', 'import-users-from-csv-with-meta' ); ?></em></small>
 					<ol>
-						<li><?php _e( 'Username', 'import-users-from-csv-with-meta' ); ?></li>
+						<li><?php _e( 'Username: you can leave it empty and the username will be generated randomly', 'import-users-from-csv-with-meta' ); ?> </li>
 						<li><?php _e( 'Email', 'import-users-from-csv-with-meta' ); ?></li>
 					</ol>						
 					<small><em><?php _e( '(The next columns are totally customizable and you can use whatever you want. All rows must contains same columns)', 'import-users-from-csv-with-meta' ); ?></em></small>
@@ -78,61 +78,8 @@ class ACUI_Doc{
 				</td>
 			</tr>
 
-			<?php if( is_plugin_active( 'woocommerce/woocommerce.php' ) ): ?>
-
-				<tr valign="top">
-					<th scope="row"><?php _e( "WooCommerce is activated", 'import-users-from-csv-with-meta' ); ?></th>
-					<td><?php _e( "You can use those labels if you want to set data adapted to the WooCommerce default user columns", 'import-users-from-csv-with-meta' ); ?>
-					<ol>
-						<li>billing_first_name</li>
-						<li>billing_last_name</li>
-						<li>billing_company</li>
-						<li>billing_address_1</li>
-						<li>billing_address_2</li>
-						<li>billing_city</li>
-						<li>billing_postcode</li>
-						<li>billing_country</li>
-						<li>billing_state</li>
-						<li>billing_phone</li>
-						<li>billing_email</li>
-						<li>shipping_first_name</li>
-						<li>shipping_last_name</li>
-						<li>shipping_company</li>
-						<li>shipping_address_1</li>
-						<li>shipping_address_2</li>
-						<li>shipping_city</li>
-						<li>shipping_postcode</li>
-						<li>shipping_country</li>
-						<li>shipping_state</li>
-					</ol>
-				</td>
-				</tr>
-			<?php endif; ?>
-
-			<?php if( is_plugin_active( 'buddypress/bp-loader.php' ) ): ?>
-
-				<tr valign="top">
-					<th scope="row"><?php _e( "BuddyPress is activated", 'import-users-from-csv-with-meta' ); ?></th>
-					<td><?php _e( "You can use the <strong>profile fields</strong> you have created and also you can set one or more groups for each user. For example:", 'import-users-from-csv-with-meta' ); ?>
-					<ul style="list-style:disc outside none; margin-left:2em;">
-						<li><?php _e( "If you want to assign an user to a group you have to create a column 'bp_group' and a column 'bp_group_role'", 'import-users-from-csv-with-meta' ); ?></li>
-						<li><?php _e( "Then in each cell you have to fill with the BuddyPress <strong>group slug</strong>", 'import-users-from-csv-with-meta' ); ?></li>
-						<li><?php _e( "And the role assigned in this group: <em>Administrator, Moderator or Member</em>", 'import-users-from-csv-with-meta' ); ?></li>
-						<li><?php _e( "You can do it with multiple groups at the same time using commas to separate different groups, in bp_group column, i.e.: <em>group_1, group_2, group_3</em>", 'import-users-from-csv-with-meta' ); ?></li>
-						<li><?php _e( "But you will have to assign a role for each group: <em>Moderator,Moderator,Member,Member</em>", 'import-users-from-csv-with-meta' ); ?></li>
-						<li><?php _e( "If you get some error of this kind:", 'import-users-from-csv-with-meta' ); ?> <code>Fatal error: Class 'BP_XProfile_Group'</code> <?php _e( "please enable Buddypress Extended Profile then import the csv file. You can then disable this afterwards", 'import-users-from-csv-with-meta' ); ?></li>
-					</ul>
-				</td>
-				</tr>
-
-			<?php endif; ?>
-
 			<?php do_action( 'acui_documentation_after_plugins_activated' ); ?>
-
-			<tr valign="top">
-				<th scope="row"><?php _e( "Important notice", 'import-users-from-csv-with-meta' ); ?></th>
-				<td><?php _e( "You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.", 'import-users-from-csv-with-meta' ); ?></td>
-			</tr>
+			
 			<tr valign="top">
 				<th scope="row"><?php _e( "Any question about it", 'import-users-from-csv-with-meta' ); ?></th>
 				<td>
@@ -142,14 +89,20 @@ class ACUI_Doc{
 					</ul>
 				</td>
 			</tr>
+
+			<tr valign="top">
+				<th scope="row"><?php _e( 'Hooks', 'import-users-from-csv-with-meta' ); ?></th>
+			<td><?php _e( 'If you are a developer you can extend or use this plugin with all the hooks we provide, you have <a href="https://codection.com/import-users-csv-meta/listado-de-hooks-de-import-and-exports-users-and-customers/">a list of them here</a>','import-users-from-csv-with-meta'); ?></td>
+			</tr>
+
 			<tr valign="top">
 				<th scope="row"><?php _e( 'Example', 'import-users-from-csv-with-meta' ); ?></th>
-			<td><?php _e( 'Download this', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo plugins_url() . "/import-users-from-csv-with-meta/test.csv"; ?>">.csv <?php _e('file','import-users-from-csv-with-meta'); ?></a> <?php _e( 'to test', 'import-users-from-csv-with-meta' ); ?></td>
+			<td><?php _e( 'Download this', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo esc_url( plugins_url( 'test.csv', dirname( __FILE__ ) ) ); ?>">.csv <?php _e('file','import-users-from-csv-with-meta'); ?></a> <?php _e( 'to test', 'import-users-from-csv-with-meta' ); ?></td>
 			</tr>
 		</tbody>
 		</table>
 		<br/>
-		<div style="width:775px;margin:0 auto"><img src="<?php echo plugins_url() . "/import-users-from-csv-with-meta/csv_example.png"; ?>"/></div>
+		<div style="width:775px;margin:0 auto"><img src="<?php echo esc_url( plugins_url( 'csv_example.png', dirname( __FILE__ ) ) ); ?>"/></div>
 	<?php
 	}
 }

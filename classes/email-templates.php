@@ -4,12 +4,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 class ACUI_Email_Template{
 	function __construct(){
-		add_action( 'init', array( $this, 'cpt_email_template' ), 0 );
+		add_action( 'wp_loaded', array( $this, 'cpt_email_template' ) );
 		add_action( 'edit_form_after_editor', array( $this, 'email_templates_edit_form_after_editor' ), 10, 1 );
 		add_action( 'wp_ajax_acui_refresh_enable_email_templates', array( $this, 'refresh_enable_email_templates' ) );
 		add_action( 'wp_ajax_acui_email_template_selected', array( $this, 'email_template_selected' ) );
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'save_post' ) );
+		add_action( 'acui_email_options_after_editor', array( $this, 'email_templates_edit_form_after_editor' ) );
 	}
 
 	function cpt_email_template() {
@@ -66,10 +67,9 @@ class ACUI_Email_Template{
 			'capability_type'       => 'page',
 		);
 		register_post_type( 'acui_email_template', $args );
-
 	}
 	
-	public static function email_templates_edit_form_after_editor( $post = "" ){
+	public function email_templates_edit_form_after_editor( $post = "" ){
 		if( !empty( $post ) && $post->post_type != 'acui_email_template' )
 			return;
 		?>
@@ -80,8 +80,10 @@ class ACUI_Email_Template{
 		<li>**loginurl** = <?php _e( 'current site login url', 'import-users-from-csv-with-meta' ); ?></li>
 		<li>**lostpasswordurl** = <?php _e( 'lost password url', 'import-users-from-csv-with-meta' ); ?></li>
 		<li>**passwordreseturl** = <?php _e( 'password reset url', 'import-users-from-csv-with-meta' ); ?></li>
+		<li>**passwordreseturllink** = <?php _e( 'password reset url with HTML link', 'import-users-from-csv-with-meta' ); ?></li>
 		<li>**email** = <?php _e( 'user email', 'import-users-from-csv-with-meta' ); ?></li>
 		<li><?php _e( "You can also use any WordPress user standard field or an own metadata, if you have used it in your CSV. For example, if you have a first_name column, you could use **first_name** or any other meta_data like **my_custom_meta**", 'import-users-from-csv-with-meta' ) ;?></li>
+		<?php do_action( 'acui_email_wildcards_list_elements' ); ?>
 	</ul>
 		<?php
 	}
@@ -89,7 +91,7 @@ class ACUI_Email_Template{
 	function refresh_enable_email_templates(){
 		check_ajax_referer( 'codection-security', 'security' );
 		update_option( 'acui_enable_email_templates', ( $_POST[ 'enable' ] == "true" ) );
-		die();
+		wp_die();
 	}
 	
 	function email_template_selected(){
@@ -105,7 +107,7 @@ class ACUI_Email_Template{
 			'attachment_url' => wp_get_attachment_url( $attachment_id ),
 		) );
 
-		die();
+		wp_die();
 	}
 
 	function add_meta_boxes(){

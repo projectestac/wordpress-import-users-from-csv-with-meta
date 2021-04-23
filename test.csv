@@ -1,8 +1,3 @@
-Username,Email,Password,Address,City,State,Zip code,Country,user_url
-john,john@mymail.com,mypassword,Rd. Victoria,Atlanta,Georgia,1201,USA,
-javier,javier@micorreo.com,pass,Av. Cervantes,Córdoba,Córdoba,14004,España,http://www.linuxhispano.net
-elissa,eliss@mymail.com,elis2013,Verona,Ferrara,Ferrara,89891,Italia,
-piere,mon@mon.fr,passwordfrance,Nation,París,Île de la Cité,28280,France,
-peter,pet@me.com,passpass,National,Washington,Columbia,2001,USA,
-luis,luisperez@correo.es,contrasenna,Sol,Madrid,Madrid,28005,Spain,
-eleonora,eleonora@me.it,barele,Spagna,Roma,Roma,10101,Italia,
+user_login,user_email,display_name,role,first_name,last_name,billing_first_name,billing_last_name,billing_company,billing_email,billing_phone,billing_country,billing_address_1,billing_address_2,billing_city,billing_state,billing_postcode,shipping_first_name,shipping_last_name,shipping_company,shipping_country,shipping_address_1,shipping_address_2,shipping_city,shipping_state,shipping_postcode
+javier,carazo@correo.es,Javier Carazo,customer,Javier,Carazo,Javier,Carazo,,carazo@correo.es,600000000,ES,c/ Islas,,CÃ³rdoba,CO,14001,Javier,Carazo,,ES,c/ Islas,,CÃ³rdoba,CO,14001
+inma,inma@email.com,Inma PÃ©rez,subscriber,Inma,PÃ©rez,,,,,,,,,,,,,,,,,,,,

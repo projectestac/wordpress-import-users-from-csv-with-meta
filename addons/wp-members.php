@@ -2,11 +2,11 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
-if( is_plugin_active( 'wp-members/wp-members.php' ) ){
-	add_action( 'acui_tab_import_before_import_button', 'acui_wp_members_tab_import_before_import_button' );
-	add_action( 'acui_tab_frontend_before_save_button', 'acui_wp_members_tab_frontend_before_save_button' );
+if( !is_plugin_active( 'wp-members/wp-members.php' ) ){
+	return;
 }
 
+add_action( 'acui_tab_import_before_import_button', 'acui_wp_members_tab_import_before_import_button' );
 function acui_wp_members_tab_import_before_import_button(){
 	?>
 	<h2><?php _e( 'WP Members compatibility', 'import-users-from-csv-with-meta'); ?></h2>
@@ -30,6 +30,7 @@ function acui_wp_members_tab_import_before_import_button(){
 	<?php
 }
 
+add_action( 'acui_tab_frontend_before_save_button', 'acui_wp_members_tab_frontend_before_save_button' );
 function acui_wp_members_tab_frontend_before_save_button(){
 	?>
 	<h2><?php _e( 'WP Members compatibility', 'import-users-from-csv-with-meta'); ?></h2>
@@ -50,4 +51,12 @@ function acui_wp_members_tab_frontend_before_save_button(){
 		</tbody>
 	</table>
 	<?php
+}
+
+add_action( 'post_acui_import_single_user', 'acui_wp_members_post_acui_import_single_user', 10, 6 );
+function acui_wp_members_post_acui_import_single_user( $headers, $data, $user_id, $role, $positions, $form_data ){
+	$activate_users_wp_members = ( !isset( $form_data["activate_users_wp_members"] ) || empty( $form_data["activate_users_wp_members"] ) ) ? "no_activate" : sanitize_text_field( $form_data["activate_users_wp_members"] );
+	if( $activate_users_wp_members == "activate" ){
+		update_user_meta( $user_id, "active", true );
+	}
 }

@@ -29,7 +29,7 @@
 		var data = {
 			'action': 'acui_refresh_enable_email_templates',
 			'enable': enable,
-			'security': email_template_attachment_admin.nonce,
+			'security': email_template_attachment_admin.security,
 		};
 
 		$.post( ajaxurl, data, function( response ) {
@@ -44,13 +44,18 @@
 		var data = {
 			'action': 'acui_email_template_selected',
 			'email_template_selected': $( '#email_template_selected' ).val(),
-			'security': email_template_attachment_admin.nonce,
+			'security': email_template_attachment_admin.security,
 		};
 
 		$.post( ajaxurl, data, function( response ) {
 			var response = JSON.parse( response );
 			$( '#title' ).val( response.title );
-			tinyMCE.get( 'body_mail' ).setContent( response.content );
+			
+			if( typeof( tinyMCE ) === "undefined" )
+				$( 'body_mail' ).val( response.content );
+			else
+				tinyMCE.get( 'body_mail' ).setContent( response.content );
+			
 			$( '#email_template_attachment_id' ).val( response.attachment_id );
 			if( response.attachment_url != '' ){
 				$( '#email_template_attachment_file' ).val( response.attachment_url );
@@ -58,21 +63,5 @@
 			$( '#template_id' ).val( response.id );
 			$( '#save_mail_template_options' ).click();
 		});
-	} );
-
-	$( '#acui_email_option_remove_upload_button' ).click( function(){
-		var data = {
-			'action': 'acui_mail_options_remove_attachment',
-			'security': email_template_attachment_admin.nonce,
-		};
-
-		$.post( ajaxurl, data, function( response ) {
-			location.reload();
-		});
-	} );
-
-	$( '#acui_email_template_remove_upload_button' ).click( function(){
-		$( '#email_template_attachment_file' ).val( '' );
-		$( '#email_template_attachment_id' ).val( '' );	
 	} );
 });

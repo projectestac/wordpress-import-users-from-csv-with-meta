@@ -882,12 +882,12 @@ msgid "WordPress automatic emails users updated"
 msgstr "Courriels automatiques pour les mises à jour d’utilisateurs"
 
 #: importer.php:947
-msgid "Send automattic WordPress emails?"
+msgid "Send automatic WordPress emails?"
 msgstr "Envoyer des courriels automatiques WordPress ?"
 
 #: importer.php:951
 msgid ""
-"Deactivate WordPress automattic email when an user is updated or his "
+"Deactivate WordPress automatic email when an user is updated or his "
 "password is changed"
 msgstr ""
 "Désactiver le courriel automatique lorsqu'un utilisateur est mis à jour ou "
@@ -895,7 +895,7 @@ msgstr ""
 
 #: importer.php:952
 msgid ""
-"Activate WordPress automattic email when an user is updated or his password "
+"Activate WordPress automatic email when an user is updated or his password "
 "is changed"
 msgstr ""
 "Activer le courriel automatique quand un utilisateur est mis à jour ou son "
@@ -904,7 +904,7 @@ msgstr ""
 #: importer.php:954
 msgid ""
 "When you update an user or change his password, WordPress prepare and send "
-"automattic email, you can deactivate it here."
+"automatic email, you can deactivate it here."
 msgstr ""
 "Lorsque vous mettez à jour un utilisateur ou modifiez son mot de passe, "
 "WordPress prépare et envoie un courrier électronique automatique, vous "

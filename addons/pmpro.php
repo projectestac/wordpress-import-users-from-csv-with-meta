@@ -2,11 +2,13 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
-if( is_plugin_active( 'paid-memberships-pro/paid-memberships-pro.php' ) ){
-	add_filter( 'acui_restricted_fields', 'acui_pmpro_restricted_fields', 10, 1 );
-	add_action( 'acui_documentation_after_plugins_activated', 'acui_pmpro_documentation_after_plugins_activated' );
-	add_action( 'post_acui_import_single_user', 'acui_pmpro_post_import_single_user', 10, 3 );
+if( !is_plugin_active( 'paid-memberships-pro/paid-memberships-pro.php' ) ){
+	return;
 }
+
+add_filter( 'acui_restricted_fields', 'acui_pmpro_restricted_fields', 10, 1 );
+add_action( 'acui_documentation_after_plugins_activated', 'acui_pmpro_documentation_after_plugins_activated' );
+add_action( 'post_acui_import_single_user', 'acui_pmpro_post_import_single_user', 10, 3 );
 
 function acui_pmpro_fields() {
 	$pmpro_fields = array(
