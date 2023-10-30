@@ -61,7 +61,7 @@ class ACUI_Columns{
 						<?php 
 						if( is_array( $headers ) && count( $headers ) > 0 ):
 							foreach ($headers as $column): ?>
-							<li><?php echo $column; ?></li>
+							<li><?php echo esc_html( $column ); ?></li>
 						<?php endforeach;  ?>
 						
 						<?php else: ?>
@@ -164,11 +164,10 @@ class ACUI_Columns{
 	}
 
 	function extra_user_profile_fields( $user ) {
-		$acui_helper = new ACUI_Helper();
-		$acui_restricted_fields = $acui_helper->get_restricted_fields();
-		$headers = get_option("acui_columns");
+		$acui_restricted_fields = ACUIHelper()->get_restricted_fields();
+		$headers = get_option( "acui_columns" );
 	
-		if( is_array( $headers ) && !empty( $headers ) ):
+		if( is_array( $headers ) && !empty( array_diff( $headers, $acui_restricted_fields ) ) ):
 	?>
 		<h3>Extra profile information</h3>
 		
@@ -176,10 +175,13 @@ class ACUI_Columns{
 		foreach ( $headers as $column ):
 			if( in_array( $column, $acui_restricted_fields ) )
 				continue;
+
+			$column = esc_html( $column );
+			$value = is_a( $user, 'WP_User' ) ? esc_attr( ACUI_Helper::show_meta( $user->ID, $column ) ) : '';
 		?>
 			<tr>
 				<th><label for="<?php echo $column; ?>"><?php echo $column; ?></label></th>
-				<td><input type="text" name="<?php echo $column; ?>" id="<?php echo $column; ?>" value="<?php echo esc_attr(get_the_author_meta($column, $user->ID )); ?>" class="regular-text" /></td>
+				<td><input type="text" name="<?php echo $column; ?>" id="<?php echo str_replace( ' ', '_', strtolower( $column ) ); ?>" value="<?php echo $value; ?>" class="regular-text" <?php echo apply_filters( 'acui_columns_field_extra_attributes', '', $column ); ?>/></td>
 			</tr>
 			<?php
 		endforeach;
@@ -189,20 +191,35 @@ class ACUI_Columns{
 	}
 
 	function save_extra_user_profile_fields( $user_id ){
-		$acui_helper = new ACUI_Helper();
-		$headers = get_option("acui_columns");
-		$acui_restricted_fields = $acui_helper->get_restricted_fields();
-	
 		$post_filtered = filter_input_array( INPUT_POST );
-	
+		if( empty( $post_filtered ) || count( $post_filtered ) == 0 )
+			return;
+		
+		$headers = get_option("acui_columns");
+		$acui_restricted_fields = ACUIHelper()->get_restricted_fields();
+		$values_changed = array();
+		
 		if( is_array( $headers ) && count( $headers ) > 0 ):
+            $values = array();
+
 			foreach ( $headers as $column ){
 				if( in_array( $column, $acui_restricted_fields ) )
 					continue;
 	
-				$column_sanitized = str_replace(" ", "_", $column);
-				update_user_meta( $user_id, $column, $post_filtered[$column_sanitized] );
+				$column_sanitized = str_replace(" ", "_", $column );
+
+				if( isset( $post_filtered[ $column_sanitized ] ) ){
+                    $old_value = get_user_meta( $user_id, $column, true );
+
+                    if( $old_value != $post_filtered[ $column_sanitized ] )
+                        $values_changed[ $column ] = $post_filtered[ $column_sanitized ];
+
+                    update_user_meta( $user_id, $column, $post_filtered[ $column_sanitized ] );
+                    $values[ $column ] = $post_filtered[ $column_sanitized ];
+                }
 			}
+
+            do_action( 'acui_columns_fields_saved', $values, $values_changed );
 		endif;
 	}
 

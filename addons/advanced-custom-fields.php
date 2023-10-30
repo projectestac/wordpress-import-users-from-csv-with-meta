@@ -11,7 +11,9 @@ class ACUI_ACF{
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
 		add_filter( 'acui_not_meta_fields', array( $this, 'restricted_fields' ), 10, 1 );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
-		add_action( 'post_acui_import_single_user', array( $this, 'import' ), 10, 3 );		
+		add_action( 'post_acui_import_single_user', array( $this, 'import' ), 10, 3 );
+		add_filter( 'acui_export_columns', array( $this, 'export_columns' ), 10, 1 );
+		add_filter( 'acui_export_data', array( $this, 'export_data' ), 10, 2 );
 	}
 
 	function restricted_fields( $acui_restricted_fields ){
@@ -30,11 +32,14 @@ class ACUI_ACF{
 					<li><?php _e( "Group name", 'import-users-from-csv-with-meta' ); ?>: <em><?php echo $group; ?></em></li>
 					<ul style="list-style:square inside none; margin-left:2em;">
 						<?php foreach ( $fields as $field ): ?>
-						<li><?php echo $field['label']; ?> <em>(type: <?php echo $field['type']; ?>)</em> - Column name in the CSV: <strong><?php echo $field['name']; ?></strong></li>
+						<li><?php echo $field['label']; ?> <em>(type: <?php echo $field['type']; ?>)</em> - Column name in the CSV: <strong><?php echo $field['name']; ?></strong>
+						<?php if( $field['type'] == 'image'  ): ?><em><?php _e( "(you must use as value the URL of the image)", 'import-users-from-csv-with-meta' ); ?></em><?php endif; ?>
+						</li>
 						<?php endforeach; ?>
 					</ul>
 				<?php endforeach; ?>
 				</ul>
+				<p class="description">In fields of type relationships, you can use post slug or post ID in the list of posts related.</p>
 			</td>
 		</tr>
 		<?php
@@ -54,19 +59,15 @@ class ACUI_ACF{
 		}
 
 		foreach ( $fields_positions as $pos => $key ) {
-			/*$preexisting_values = get_field( $key, "user_" . $user_id );
-			if( !empty( $preexisting_values ) ){
-				$data = array_unique( array_merge( $preexisting_values, $data ) );
-				$data = array_filter( $data, function( $value ) { return !is_null( $value ) && $value !== '' && $value != 0; } );
-			}*/
-
-			// slugs in relationship
 			if( $types[ $key ][ 'type' ] == 'relationship' ){
 				$data = explode( ',', $row[ $pos ] );
 
-				foreach ( $data as $it => $slug ) {
-					$data[ $it ] = ACUI_Helper::get_post_id_by_slug( $slug );
+				foreach ( $data as $it => $value ) {
+					$data[ $it ] = is_numeric( $value ) ? $value : ACUI_Helper::get_post_id_by_slug( $value );
 				}
+			}
+			elseif( $types[ $key ][ 'type' ] == 'image' ){
+				$data = media_sideload_image( $row[ $pos ], 0, $key . ' of user ' . $user_id, 'id' );
 			}
 			elseif( $types[ $key ][ 'multiple' ] ){
 				$data = explode( ',', $row[ $pos ] );
@@ -80,21 +81,28 @@ class ACUI_ACF{
 		}
 	}
 
+	function export_columns( $row ){
+		foreach( $this->get_fields_with_url() as $field ){
+			$row[ $field . "_url" ] = $field . "_url";
+		}
+
+		return $row;
+	}
+
+	function export_data( $row, $user ){
+        foreach( $this->get_fields_with_url() as $field ){
+			$row[] = wp_get_attachment_url( get_user_meta( $user, $field, true ) );
+		}
+
+		return $row;
+	}
+
 	function get_user_fields(){
-		$post_id = "user_new";
-		$fields = array();
-		
-		$args = array(
-			'user_id'	=> 'new',
-			'user_form'	=> '#your-profile'
-		);
-		
+		$fields = array();	
 		$field_groups = acf_get_field_groups( array( 'user_id' => 'new', 'user_form' => '#your-profile' ) );
 		
-		if( empty($field_groups) ) 
-			return;
-		
-		acf_form_data( array( 'post_id'	=> "user_new", 'nonce' => 'user' ) );
+		if( empty( $field_groups ) ) 
+			return array();
 		
 		foreach( $field_groups as $field_group ) {
 			$fields[ $field_group['title'] ] = acf_get_fields( $field_group );
@@ -131,13 +139,23 @@ class ACUI_ACF{
 			foreach ( $fields_of_group as $field ){
 				$fields_keys[ $field['name'] ] = [
 					'type' => $field['type'],
-					// 'select' type has a 'multiple' key which can be 0 or 1
 					'multiple' => !empty( $field['multiple'] ) || ( !isset( $field['multiple'] ) && in_array( $field['type'], $types_multiple ) ),
 				];
 			}
 		}
 
 		return $fields_keys;
+	}
+
+	function get_fields_with_url(){
+		$fields = array();
+
+		foreach( $this->get_user_fields_types() as $key => $field ){
+			if( in_array( $field['type'], array( 'image', 'file', 'image_aspect_ratio_crop' ) ) )
+				$fields[] = $key;
+		}
+
+		return $fields;
 	}
 }
 

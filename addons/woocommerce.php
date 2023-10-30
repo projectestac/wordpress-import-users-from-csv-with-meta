@@ -1,4 +1,7 @@
 <?php
+
+use Automattic\WooCommerce\Admin\API\Reports\Customers\DataStore as CustomersDataStore;
+
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
 if( !is_plugin_active( 'woocommerce/woocommerce.php' ) ){
@@ -15,6 +18,10 @@ class ACUI_WooCommerce{
 		add_action( 'after_acui_import_users', array( $this, 'clear_transients' ) );
 		add_filter( 'acui_import_email_body_before_wpautop', array( $this, 'include_overrides_email' ), 10, 5 );
 		add_action( 'acui_email_wildcards_list_elements', array( $this, 'new_wildcards_email' ) );
+        add_filter( 'acui_force_reset_password_edit_profile_url', array( $this, 'force_reset_password_edit_profile_url' ) );
+        add_filter( 'acui_force_reset_password_redirect_condition', array( $this, 'force_reset_password_redirect_condition' ) );
+        add_action( 'wp_head', array( $this, 'force_reset_password_notice' ) );
+        add_action( 'woocommerce_save_account_details', array( $this, 'force_reset_save_account_details' ) );
 	}
 
 	function fields(){
@@ -85,6 +92,8 @@ class ACUI_WooCommerce{
 
 		$customer = new WC_Customer( $user_id );
 		$customer->save();
+
+		CustomersDataStore::update_registered_customer( $user_id );
 	}
 
 	function clear_transients(){
@@ -118,6 +127,36 @@ class ACUI_WooCommerce{
 		<li>**woocommercepasswordreseturllink** = <?php _e( 'WooCommerce password reset url with HTML link', 'import-users-from-csv-with-meta' ); ?>
 		<?php
 	}
+
+    function force_reset_password_edit_profile_url(){
+        return wc_customer_edit_account_url() . '#password_current';
+    }
+
+    function force_reset_password_redirect_condition( $condition ){
+		global $wp;
+		return home_url( $wp->request ) . "/" == wc_customer_edit_account_url();
+	}
+
+    function force_reset_password_notice(){
+        if ( get_user_meta( get_current_user_id(), 'acui_force_reset_password', true ) && !wc_has_notice( apply_filters( 'acui_force_reset_password_message', __( 'Please change your password', 'import-users-from-csv-with-meta' ) ), 'error' ) ) {
+            wc_add_notice( apply_filters( 'acui_force_reset_password_message', __( 'Please change your password', 'import-users-from-csv-with-meta' ) ), 'error' );
+        }
+    }
+
+    function force_reset_save_account_details( $user_id ){
+        $pass1 = $pass2 = '';
+
+		if ( isset( $_POST['password_1'] ) )
+			$pass1 = $_POST['password_1'];
+
+		if ( isset( $_POST['password_2'] ) )
+			$pass2 = $_POST['password_2'];
+
+		if ( $pass1 != $pass2 || empty( $pass1 ) || empty( $pass2 ) || false !== strpos( stripslashes( $pass1 ), "\\" ) )
+			return;
+
+		delete_user_meta( $user_id, 'acui_force_reset_password' );
+    }
 }
 
 new ACUI_WooCommerce();

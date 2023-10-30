@@ -9,11 +9,16 @@ if( !is_plugin_active( 'buddypress/bp-loader.php' ) && !function_exists( 'bp_is_
 class ACUI_Buddypress{
 	var $fields;
 	var $profile_groups;
+	var $plugin_path;
 
 	function __construct(){
-		if( !class_exists( "BP_XProfile_Group" ) ){
-			require_once( WP_PLUGIN_DIR . "/buddypress/bp-xprofile/classes/class-bp-xprofile-group.php" );
-		}
+		$this->plugin_path = is_plugin_active( 'buddyboss-platform/bp-loader.php' ) ? WP_PLUGIN_DIR . "/buddyboss-platform/" : WP_PLUGIN_DIR . "/buddypress/";
+
+		if( !class_exists( 'BP_XProfile_Group' ) )
+			require_once( $this->plugin_path . "bp-xprofile/classes/class-bp-xprofile-group.php" );
+
+		if( !class_exists( 'BP_Groups_Member' ) )
+			require_once( $this->plugin_path . "bp-groups/classes/class-bp-groups-member.php" );
 		
 		$this->profile_groups = $this->get_profile_groups();
 		$this->fields = $this->get_fields();
@@ -21,7 +26,6 @@ class ACUI_Buddypress{
 	
 	function hooks(){
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
-		add_action( 'acui_tab_import_before_import_button', array( $this, 'show_compatibility' ) );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
 		add_filter( 'acui_export_columns', array( $this, 'export_columns' ), 10, 1 );
 		add_filter( 'acui_export_data', array( $this, 'export_data' ), 10, 3 );
@@ -73,7 +77,7 @@ class ACUI_Buddypress{
 				break;
 				
 			case 'checkbox':
-				$help = __( 'If you use more than one value, please use commas to separate each item', 'import-users-from-csv-with-meta' );
+				$help = __( 'If you use more than one value, please use ## to separate each item', 'import-users-from-csv-with-meta' );
 				break;
 		}
 
@@ -81,27 +85,23 @@ class ACUI_Buddypress{
 	}
 
 	function get_groups( $user_id ){
-		if( !class_exists( "BP_Groups_Member" ) ){
-			require_once( WP_PLUGIN_DIR . "/buddypress/bp-groups/classes/class-bp-groups-member.php" );
-		}
+		if( !class_exists( "BP_Groups_Member" ) )
+			require_once( $this->plugin_path . "bp-groups/classes/class-bp-groups-member.php" );
 
 		$groups = BP_Groups_Member::get_group_ids( $user_id );
 		return implode( ",", $groups['groups'] );
 	}
 
 	function get_member_type( $user_id ){
-		return implode( ",", bp_get_member_type( $user_id, false ) );
+		$member_types = bp_get_member_type( $user_id, false );
+		return ( is_array( $member_types ) ) ? implode( ",", $member_types ) : $member_types;
 	}
-
-	function show_compatibility(){
-		?>
-		<h2><?php _e( 'BuddyPress & BuddyBoss compatibility', 'import-users-from-csv-with-meta'); ?></h2>
 	
-		<table class="form-table">
-			<tbody>
-			<tr class="form-field form-required">
-				<th scope="row"><label><?php _e( 'BuddyPress/BuddyBoss users', 'import-users-from-csv-with-meta' ); ?></label></th>
-				<td><?php _e( 'You can insert any profile from BuddyPress using his name as header. Plugin will check, before import, which fields are defined in BuddyPress and will assign it in the update. You can use this fields:', 'import-users-from-csv-with-meta' ); ?>
+	function documentation(){
+		?>
+		<tr valign="top">
+			<th scope="row"><?php _e( 'BuddyPress/BuddyBoss fields', 'import-users-from-csv-with-meta'); ?></th>
+			<td><?php _e( 'You can insert any profile from BuddyPress using his name as header. Plugin will check, before import, which fields are defined in BuddyPress and will assign it in the update. You can use this fields:', 'import-users-from-csv-with-meta' ); ?>
 				<ul style="list-style:disc outside none;margin-left:2em;">
 					<?php foreach ( $this->get_fields() as $buddypress_field ): 
 						$type = $this->get_field_type( $buddypress_field ); 
@@ -109,15 +109,8 @@ class ACUI_Buddypress{
 					<li><?php echo $buddypress_field; ?> - <?php echo $type . $this->get_type_import_help( $type ); ?></li>
 					<?php endforeach; ?>
 				</ul>
-				</td>					
-			</tr>
-			</tbody>
-		</table>
-		<?php
-	}
-	
-	function documentation(){
-		?>
+			</td>
+		</tr>
 		<tr valign="top">
 			<th scope="row"><?php _e( 'BuddyPress/BuddyBoss avatar', 'import-users-from-csv-with-meta' ); ?></th>
 			<td><?php _e( 'You can import users avatars using a column called <strong>bp_avatar</strong>, in this field you can place:', 'import-users-from-csv-with-meta' ); ?>
@@ -128,7 +121,7 @@ class ACUI_Buddypress{
 			</td>
 		</tr>
 		<tr valign="top">
-			<th scope="row"><?php _e( "BuddyPress or BuddyBoss is activated", 'import-users-from-csv-with-meta' ); ?></th>
+			<th scope="row"><?php _e( "BuddyPress/BuddyBoss groups and roles", 'import-users-from-csv-with-meta' ); ?></th>
 			<td><?php _e( "You can use the <strong>profile fields</strong> you have created and also you can set one or more groups for each user. For example:", 'import-users-from-csv-with-meta' ); ?>
 				<ul style="list-style:disc outside none; margin-left:2em;">
 					<li><?php _e( "If you want to assign an user to a group you have to create a column 'bp_group' and a column 'bp_group_role'", 'import-users-from-csv-with-meta' ); ?></li>
@@ -147,22 +140,27 @@ class ACUI_Buddypress{
 
 	function export_columns( $row ){
 		foreach ( $this->fields as $key ) {
-			$row[] = $key;
+			$row[ $key ] = $key;
 		}
 
-		$row[] = 'bp_group_id';
-		$row[] = 'bp_member_type';
+		$row['bp_group_id'] = 'bp_group_id';
+		$row['bp_member_type'] = 'bp_member_type';
 
 		return $row;
 	}
 
-	function export_data( $row, $user ){
-		foreach ( $this->fields as $key ) {
-			$row[] = ACUI_Exporter::prepare( $key, xprofile_get_field_data( $key, $user, 'comma' ), $datetime_format );
+	function export_data( $row, $user, $args ){
+		$fields_to_export = ( count( $args['filtered_columns'] ) == 0 ) ? $this->fields : array_intersect( $this->fields, $args['filtered_columns'] );
+		
+        foreach( $fields_to_export as $key ) {
+			$row[ $key ] = xprofile_get_field_data( $key, $user, 'comma' );
 		}
 
-		$row[] = $this->get_groups( $user );
-		$row[] = $this->get_member_type( $user );
+		if( count( $args['filtered_columns'] ) == 0 || in_array( 'bp_group_id', $args['filtered_columns'] ) )
+			$row['bp_group_id'] = $this->get_groups( $user );
+
+		if( count( $args['filtered_columns'] ) == 0 || in_array( 'bp_member_type', $args['filtered_columns'] ) )
+			$row['bp_member_type'] = $this->get_member_type( $user );
 
 		return $row;
 	}
@@ -200,7 +198,7 @@ class ACUI_Buddypress{
 					break;
 				
 				case 'checkbox':
-					xprofile_set_field_data( $field, $user_id, explode( ',', $row[ $pos ] ) );
+					xprofile_set_field_data( $field, $user_id, explode( '##', $row[ $pos ] ) );
 					break;
 
 				default:

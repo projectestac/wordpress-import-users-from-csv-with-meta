@@ -16,9 +16,30 @@ class ACUI_WP_Importer_GUI{
 		echo "<script>document.location.href='" . admin_url( 'tools.php?page=acui' ) . "'</script>";
 	}
 
-	function exporter(){
-		?>
-		<p><?php printf( __( 'You can also export users and customers in CSV format, filtering by user created date, role, choosing the delimiter and some other options using <a href="%s">this exporter</a>.', 'import-users-from-csv-with-meta' ), admin_url( 'tools.php?page=acui&tab=export' ) ); ?></p>
+	function exporter(){		
+		$title = function_exists( 'is_woocommerce' ) ? __( 'Users and customers (in CSV format)', 'import-users-from-csv-with-meta' ) : __( 'Users (in CSV format)', 'import-users-from-csv-with-meta' );?>
+		<p><label><input type="radio" name="content" value="users" aria-describedby="Users"> <?php echo $title; ?></label></p>
+		<script>
+		jQuery( document ).ready( function( $ ){
+			$( '#export-filters' ).submit( function( e ){
+				if( $('input[type="radio"][name="content"][value="users"').is(':checked') ){
+					document.location.href='<?php echo admin_url( 'tools.php?page=acui&tab=export' ); ?>';
+					return false;
+				}
+
+				return true;
+			} );
+
+			$( 'input[type="radio"][name="content"]' ).change( function(){
+				if( $( this ).val() == 'users' ){
+					$( '#submit' ).val( '<?php _e( 'Choose options...', 'import-users-from-csv-with-meta' ); ?>' );
+				}
+				else{
+					$( '#submit' ).val( '<?php _e( 'Download Export File' ) ?>' );
+				}
+			});
+		} )	
+		</script>
 		<?php
 	}
 }

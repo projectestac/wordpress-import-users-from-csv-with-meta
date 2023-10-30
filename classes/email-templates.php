@@ -18,10 +18,10 @@ class ACUI_Email_Template{
 			return;
 
 		$labels = array(
-			'name'                  => _x( 'Email templates (Import Users From CSV With Meta)', 'Post Type General Name', 'import-users-from-csv-with-meta' ),
-			'singular_name'         => _x( 'Email template (Import Users From CSV With Meta)', 'Post Type Singular Name', 'import-users-from-csv-with-meta' ),
-			'menu_name'             => __( 'Email templates (Import Users)', 'import-users-from-csv-with-meta' ),
-			'name_admin_bar'        => __( 'Email templates (Import Users From CSV With Meta)', 'import-users-from-csv-with-meta' ),
+			'name'                  => _x( 'Email templates (Import and Export Users and Customers)', 'Post Type General Name', 'import-users-from-csv-with-meta' ),
+			'singular_name'         => _x( 'Email template (Import and Export Users and Customers)', 'Post Type Singular Name', 'import-users-from-csv-with-meta' ),
+			'menu_name'             => __( 'Email templates', 'import-users-from-csv-with-meta' ),
+			'name_admin_bar'        => __( 'Email templates (Import and Export Users and Customers)', 'import-users-from-csv-with-meta' ),
 			'archives'              => __( 'Item Archives', 'import-users-from-csv-with-meta' ),
 			'attributes'            => __( 'Item Attributes', 'import-users-from-csv-with-meta' ),
 			'parent_item_colon'     => __( 'Parent Item:', 'import-users-from-csv-with-meta' ),
@@ -77,11 +77,11 @@ class ACUI_Email_Template{
 	<ul style="list-style-type:disc; margin-left:2em;">
 		<li>**username** = <?php _e( 'username to login', 'import-users-from-csv-with-meta' ); ?></li>
 		<li>**password** = <?php _e( 'user password', 'import-users-from-csv-with-meta' ); ?></li>
+		<li>**email** = <?php _e( 'user email', 'import-users-from-csv-with-meta' ); ?></li>
 		<li>**loginurl** = <?php _e( 'current site login url', 'import-users-from-csv-with-meta' ); ?></li>
 		<li>**lostpasswordurl** = <?php _e( 'lost password url', 'import-users-from-csv-with-meta' ); ?></li>
 		<li>**passwordreseturl** = <?php _e( 'password reset url', 'import-users-from-csv-with-meta' ); ?></li>
 		<li>**passwordreseturllink** = <?php _e( 'password reset url with HTML link', 'import-users-from-csv-with-meta' ); ?></li>
-		<li>**email** = <?php _e( 'user email', 'import-users-from-csv-with-meta' ); ?></li>
 		<li><?php _e( "You can also use any WordPress user standard field or an own metadata, if you have used it in your CSV. For example, if you have a first_name column, you could use **first_name** or any other meta_data like **my_custom_meta**", 'import-users-from-csv-with-meta' ) ;?></li>
 		<?php do_action( 'acui_email_wildcards_list_elements' ); ?>
 	</ul>
@@ -89,8 +89,8 @@ class ACUI_Email_Template{
 	}
 	
 	function refresh_enable_email_templates(){
-		check_ajax_referer( 'codection-security', 'security' );
-		update_option( 'acui_enable_email_templates', ( $_POST[ 'enable' ] == "true" ) );
+        check_ajax_referer( 'codection-security', 'security' );
+        update_option( 'acui_enable_email_templates', ( $_POST[ 'enable' ] == "true" ) );
 		wp_die();
 	}
 	

@@ -8,7 +8,7 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 
 class ACUI_MetaKeys{
 	public static function admin_gui(){
-		$customers_obj = new Customers_List();
+		$meta_keys_obj = new ACUI_MetaKeys_Table();
 	?>
 	<style type="text/css">
 		.tablenav.top{
@@ -22,8 +22,8 @@ class ACUI_MetaKeys{
 				<div class="meta-box-sortables ui-sortable">
 					<form method="post">
 						<?php
-						$customers_obj->prepare_items();
-						$customers_obj->display(); ?>
+						$meta_keys_obj->prepare_items();
+						$meta_keys_obj->display(); ?>
 					</form>
 				</div>
 			</div>
@@ -34,7 +34,7 @@ class ACUI_MetaKeys{
 	}
 }
 
-class Customers_List extends WP_List_Table {
+class ACUI_MetaKeys_Table extends WP_List_Table {
 	public function __construct() {
 		parent::__construct( [
 			'singular' => 'Meta key',
@@ -53,7 +53,7 @@ class Customers_List extends WP_List_Table {
 		return $columns;
 	}
 
-	public static function get_meta_keys() {
+	static function get_meta_keys() {
 		global $wpdb;
 
 	    $meta_keys = array();
@@ -73,7 +73,7 @@ class Customers_List extends WP_List_Table {
 	    return $meta_keys;
 	}
 	
-	public static function record_count() {
+	static function record_count() {
 		global $wpdb;
 
 	    $select = "SELECT distinct $wpdb->usermeta.meta_key FROM $wpdb->usermeta";
@@ -82,11 +82,11 @@ class Customers_List extends WP_List_Table {
 	    return count( $usermeta );
 	}
 
-	public function no_items() {
+	function no_items() {
 		_e( 'No meta keys availale.', 'sp' );
 	}
 
-	public function column_default( $item, $column_name ) {
+	function column_default( $item, $column_name ) {
 		switch ( $column_name ) {
 			case 'meta_key':
 				return $item['meta_key'];
@@ -99,25 +99,32 @@ class Customers_List extends WP_List_Table {
 		}
 	}
 
-	public function get_example( $meta_key ){
+	function get_example( $meta_key ){
 		global $wpdb;
 	    $select = $wpdb->prepare( "SELECT $wpdb->usermeta.meta_value FROM $wpdb->usermeta WHERE meta_key = %s AND meta_value IS NOT NULL AND meta_value <> '' LIMIT 1", $meta_key );
 	    $usermeta = $wpdb->get_results( $select, ARRAY_A);
+
+		if( count( $usermeta ) == 0 )
+			return '';
 
 	    $usermeta = reset( $usermeta );
 
 	    return $usermeta['meta_value'];
 	}
 
-	public function get_type( $meta_key ){
-		return is_serialized( $this->get_example( $meta_key ) ) ? 'Serialized' : 'Non serialized';
+	function get_type( $meta_key ){
+		$example = $this->get_example( $meta_key );
+		if( empty( $example ) )
+			return '';
+
+		return is_serialized( $example ) ? 'Serialized' : 'Non serialized';
 	}
 
 	function column_name( $item ) {
 		return '<strong>' . $item['name'] . '</strong>';
 	}
 
-	public function prepare_items() {
+	function prepare_items() {
 		$columns = $this->get_columns();
 		$this->_column_headers = array( $columns, array(), array() );
 

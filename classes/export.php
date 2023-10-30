@@ -3,90 +3,183 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 class ACUI_Exporter{
 	private $path_csv;
-	private $user_data;
 
 	function __construct(){
 		$upload_dir = wp_upload_dir();
-
 		$this->path_csv = $upload_dir['basedir'] . "/export-users.csv";
-		$this->user_data = array( "user_login", "user_email", "source_user_id", "user_pass", "user_nicename", "user_url", "user_registered", "display_name" );
-		$this->woocommerce_default_user_meta_keys = array( 'billing_first_name', 'billing_last_name', 'billing_email', 'billing_phone', 'billing_country', 'billing_address_1', 'billing_city', 'billing_state', 'billing_postcode', 'shipping_first_name', 'shipping_last_name', 'shipping_country', 'shipping_address_1', 'shipping_address_2', 'shipping_city', 'shipping_state', 'shipping_postcode' );
-		$this->other_non_date_keys = array( 'shipping_phone' );
 
+        add_action( 'init', array( $this, 'download_export_file' ) );
+        add_action( 'admin_init', array( $this, 'download_export_file' ) );
 		add_action( 'wp_ajax_acui_export_users_csv', array( $this, 'export_users_csv' ) );
-		add_filter( 'acui_export_get_key_user_data', array( $this, 'filter_key_user_id' ) );
-		add_filter( 'acui_export_non_date_keys', array( $this, 'get_non_date_keys' ), 1, 1 );
-		add_filter( 'acui_export_columns', array( $this, 'maybe_order_columns_alphabetacally' ), PHP_INT_MAX, 2 );
-		add_filter( 'acui_export_data', array( $this, 'maybe_order_row_alphabetically' ), PHP_INT_MAX, 5 );
+		add_action( 'wp_ajax_acui_export_save_settings', array( $this, 'ajax_save_settings' ) );
 	}
 
-	public static function admin_gui(){
-		$roles = ACUI_Helper::get_editable_roles();
+    static function enqueue(){
+        wp_enqueue_script( 'acui_export_js', plugins_url( 'assets/export.js', dirname( __FILE__ ) ), false, ACUI_VERSION, true );
+        wp_localize_script( 'acui_export_js', 'acui_export_js_object', array(
+            'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            'starting_process' => __( 'Starting process', 'import-users-from-csv-with-meta' ),
+            'step' => __( 'Step', 'import-users-from-csv-with-meta' ),
+            'of_approximately' => __( 'of approximately', 'import-users-from-csv-with-meta' ),
+            'steps' => __( 'steps', 'import-users-from-csv-with-meta' ),
+            'error_thrown' => __( 'Error thrown in the server, we cannot continue. Please check console to see full details about the error.', 'import-users-from-csv-with-meta' ),
+        ) );
+    }
+
+    static function styles(){
+        ?>
+        <style>
+#acui_export_results{
+	display: none;
+	background-color: #dcdcde;
+	padding: 20px;
+}
+
+#acui_exporter .user-exporter-progress-wrapper{
+    padding: 5px;
+    background-color: white;
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#acui_exporter .user-exporter-progress{
+    width: 100%;
+    height: 42px;
+	border: 0;
+	border-radius: 9px;
+}
+.user-exporter-progress::-webkit-progress-bar {
+	background-color: #f3f3f3;
+	border-radius: 9px;
+}
+
+.user-exporter-progress::-webkit-progress-value {
+	background: #2271b1;
+	border-radius: 9px;
+}
+
+.user-exporter-progress::-moz-progress-bar {
+	background: #2271b1;
+	border-radius: 9px;
+}
+
+.user-exporter-progress .progress-value {
+	padding: 0px 5px;
+	line-height: 20px;
+	margin-left: 5px;
+	font-size: .8em;
+	color: #555;
+	height: 18px;
+	float: right;
+}
+
+#acui_exporter.user-exporter__exporting table,
+#acui_exporter .user-exporter-progress-wrapper{
+    display: none;
+}
+
+#acui_exporter.user-exporter__exporting .user-exporter-progress-wrapper{
+    display: block;
+}
+        </style>
+        <?php
+    }
+
+	static function admin_gui(){
+		$settings = new ACUI_Settings( 'export_backend' );
 	?>
+	<div id="acui_export_results"></div>
+
 	<h3 id="acui_export_users_header"><?php _e( 'Export users', 'import-users-from-csv-with-meta' ); ?></h3>
-	<form id="acui_export_users_wrapper" method="POST" target="_blank" enctype="multipart/form-data" action="<?php echo admin_url( 'admin-ajax.php' ); ?>">
+	<form id="acui_exporter">
 		<table class="form-table">
 			<tbody>
 				<tr id="acui_role_wrapper" valign="top">
 					<th scope="row"><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
-						<select name="role">
-							<option value=''><?php _e( 'All roles', 'import-users-from-csv-with-meta' ); ?></option>
-						<?php foreach ( $roles as $key => $value ): ?>
-							<option value='<?php echo $key; ?>'><?php echo $value; ?></option>
-						<?php endforeach; ?>
-						</select>
+                        <?php ACUIHTML()->select( array(
+                            'options' => ACUI_Helper::get_editable_roles(),
+                            'name' => 'role',
+                            'show_option_all' => false,
+                            'show_option_none' => __( 'All roles', 'import-users-from-csv-with-meta' ),
+							'selected' => $settings->get( 'role' ),
+                        )); ?>
+					</td>
+				</tr>
+				<tr id="acui_columns" valign="top">
+					<th scope="row"><?php _e( 'Columns', 'import-users-from-csv-with-meta' ); ?></th>
+					<td>
+						<?php ACUIHTML()->textarea( array( 'name' => 'columns', 'value' => $settings->get( 'columns' ) ) ); ?>
+						<span class="description"><?php _e( 'You can use this field to set which columns must be exported and in which order.  If you leave it empty, all columns will be exported. Use a list of fields separated by commas, for example', 'import-users-from-csv-with-meta' ); ?>: user_email,first_name,last_name</span>
 					</td>
 				</tr>
 				<tr id="acui_user_created_wrapper" valign="top">
 					<th scope="row"><?php _e( 'User created', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
-						<label for="from">from <input name="from" type="date" value=""/></label>
-						<label for="to">to <input name="to" type="date" value=""/></label>
+						<label for="from">from <?php ACUIHTML()->text( array( 'type' => 'date', 'name' => 'from', 'class' => '', 'value' => $settings->get( 'from' ) ) ); ?></label>
+						<label for="to">to <?php ACUIHTML()->text( array( 'type' => 'date', 'name' => 'to', 'class' => '', 'value' => $settings->get( 'to' ) ) ); ?></label>
 					</td>
 				</tr>
 				<tr id="acui_delimiter_wrapper" valign="top">
 					<th scope="row"><?php _e( 'Delimiter', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
-						<select name="delimiter">
-							<option value='COMMA'><?php _e( 'Comma', 'import-users-from-csv-with-meta' ); ?></option>
-							<option value='COLON'><?php _e( 'Colon', 'import-users-from-csv-with-meta' ); ?></option>
-							<option value='SEMICOLON'><?php _e( 'Semicolon', 'import-users-from-csv-with-meta' ); ?></option>
-							<option value='TAB'><?php _e( 'Tab', 'import-users-from-csv-with-meta' ); ?></option>
-						</select>
+                        <?php ACUIHTML()->select( array(
+                            'options' => ACUI_Helper::get_csv_delimiters_titles(),
+                            'name' => 'delimiter',
+                            'show_option_all' => false,
+                            'show_option_none' => false,
+							'selected' => $settings->get( 'delimiter' )
+                        )); ?>
 					</td>
 				</tr>
 				<tr id="acui_timestamp_wrapper" valign="top">
 					<th scope="row"><?php _e( 'Convert timestamp data to date format', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
-						<input type="checkbox" name="convert_timestamp" id="convert_timestamp" value="1" checked="checked">
-						<input name="datetime_format" id="datetime_format" type="text" value="Y-m-d H:i:s"/> 
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'convert_timestamp', 'current' => 'yes', 'compare_value' => $settings->get( 'convert_timestamp' ) ) ); ?>
+						<?php ACUIHTML()->text( array( 'name' => 'datetime_format', 'value' => 'Y-m-d H:i:s', 'class' => '', 'value' => $settings->get( 'datetime_format' ) ) ); ?>
                         <span class="description"><a href="https://www.php.net/manual/en/datetime.formats.php"><?php _e( 'accepted formats', 'import-users-from-csv-with-meta' ); ?></a> <?php _e( 'If you have problems and you get some value exported as a date that should not be converted to date, please deactivate this option. If this option is not activated, datetime format will be ignored.', 'import-users-from-csv-with-meta' ); ?></span>
 					</td>
 				</tr>
 				<tr id="acui_order_fields_alphabetically_wrapper" valign="top">
 					<th scope="row"><?php _e( 'Order fields alphabetically', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
-						<input type="checkbox" name="order_fields_alphabetically" value="1">
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'order_fields_alphabetically', 'current' => 'yes', 'compare_value' => $settings->get( 'order_fields_alphabetically' ) ) ); ?>
 						<span class="description"><?php _e( "Order all columns alphabetically to check easier your data. First two columns won't be affected", 'import-users-from-csv-with-meta' ); ?></span>
 					</td>
 				</tr>
-				<tr id="acui_fields" valign="top">
-					<th scope="row"><?php _e( 'Fields', 'import-users-from-csv-with-meta' ); ?></th>
+                <tr id="acui_order_fields_double_encapsulate_serialized_values" valign="top">
+					<th scope="row"><?php _e( 'Double encapsulate serialized values', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
-						
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'double_encapsulate_serialized_values', 'current' => 'yes', 'compare_value' => $settings->get( 'double_encapsulate_serialized_values' ) ) ); ?>                    
+						<span class="description"><?php _e( "Serialized values sometimes can have problems being displayed in Microsoft Excel or LibreOffice, we can double encapsulate this kind of data but you would not be able to import this data beucase instead of serialized data it would be managed as strings", 'import-users-from-csv-with-meta' ); ?></span>
+					</td>
+				</tr>
+				<tr id="acui_order_fields_display_arrays_as_comma_separated_list_of_values" valign="top">
+					<th scope="row"><?php _e( 'Display serialized arrays as comma-separated lists of values', 'import-users-from-csv-with-meta' ); ?></th>
+					<td>
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'display_arrays_as_comma_separated_list_of_values', 'current' => 'yes', 'compare_value' => $settings->get( 'display_arrays_as_comma_separated_list_of_values' ) ) ); ?>                    
+						<span class="description"><?php _e( "This data cannot then be imported back into the database as an array if the exported file is imported.", 'import-users-from-csv-with-meta' ); ?></span>
 					</td>
 				</tr>
 				<tr id="acui_download_csv_wrapper" valign="top">
 					<th scope="row"><?php _e( 'Download CSV file with users', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
 						<input class="button-primary" type="submit" value="<?php _e( 'Download', 'import-users-from-csv-with-meta'); ?>"/>
+						<input class="button-primary" type="button" id="save-without-exporting" value="<?php _e( 'Save without exporting', 'import-users-from-csv-with-meta'); ?>"/>
 					</td>
 				</tr>
 			</tbody>
 		</table>
+
 		<input type="hidden" name="action" value="acui_export_users_csv"/>
-		<?php wp_nonce_field( 'codection-security', 'security' ); ?>				
+		
+		<?php wp_nonce_field( 'codection-security', 'security' ); ?>
+
+        <div class="user-exporter-progress-wrapper">
+            <progress class="user-exporter-progress" value="0" max="100"></progress>
+            <span class="user-exporter-progress-value">0%</span>
+        </div>
 	</form>
 
 	<script type="text/javascript">
@@ -96,263 +189,142 @@ class ACUI_Exporter{
 		})
 
 		$( '#convert_timestamp' ).on( 'click', function() {
-			check_convert_timestamp_checked();
-		});
-
-		function check_convert_timestamp_checked(){
 			if( $('#convert_timestamp').is(':checked') ){
 				$( '#datetime_format' ).prop( 'disabled', false );
 			} else {
 				$( '#datetime_format' ).prop( 'disabled', true );
 			}
-		}
+		});
+
+		$( '#save-without-exporting' ).click( function(){
+			var data = {
+				'action': 'acui_export_save_settings',
+				'settings': $( '#acui_exporter' ).serialize(),
+				'security': '<?php echo wp_create_nonce( "codection-security" ); ?>'
+			};
+
+			$.post(ajaxurl, data, function(response) {
+				alert( response.data.message );
+			});
+		} );
 	} )
 	</script>
 	<?php
 	}
 
-	static function is_valid_timestamp( $timestamp ){
-		return ( (string) (int) $timestamp === $timestamp ) && ( $timestamp <= PHP_INT_MAX ) && ( $timestamp >= ~PHP_INT_MAX );
+    function download_export_file() {
+		if( current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) && isset( $_GET['action'], $_GET['nonce'] ) && wp_verify_nonce( wp_unslash( $_GET['nonce'] ), 'codection-security' ) && 'download_user_csv' === wp_unslash( $_GET['action'] ) ) {
+            $exporter = new ACUI_Batch_Exporter();
+
+			if ( !empty( $_GET['filename'] ) ){
+				$exporter->set_filename( wp_unslash( $_GET['filename'] ) );
+			}
+
+			$exporter->export();
+		}
 	}
 
-	function get_non_date_keys( $non_date_keys ){
-		return array_merge( $non_date_keys, $this->user_data, $this->woocommerce_default_user_meta_keys, $this->other_non_date_keys );
-	}
-
-	function maybe_order_columns_alphabetacally( $row, $order_fields_alphabetically ){
-		if( !$order_fields_alphabetically)
-			return $row;
+	function get_results(){
+		$bad_character_formulas_values_cleaned = get_transient( 'acui_export_bad_character_formulas_values_cleaned' );
+		delete_transient( 'acui_export_bad_character_formulas_values_cleaned' );
 		
-		$first_two_columns = array_slice( $row, 0, 2 );
-		$to_order_columns = array_slice( $row, 2 );
-		sort( $to_order_columns );
+		if( empty( $bad_character_formulas_values_cleaned ) ){
+			return '';
+		}
+		
+		$results = array();
 
-		return array_merge( $first_two_columns, $to_order_columns );
+		foreach( $bad_character_formulas_values_cleaned as $info ){
+			$results[] = sprintf( __( 'User with id: %s has the cell of the column: %s edited because has content that may auto-run formulas in certain spreadsheet apps, new value is: %s', 'import-users-from-csv-with-meta' ), $info['user_id'], $info['key'], $info['value'] );
+		}
+
+		$ret = '<h3>' . __( 'Export results','import-users-from-csv-with-meta' ) . '</h3>';
+		$ret .= '<h4>' . __( 'Some values has been altered','import-users-from-csv-with-meta' ) . '</h4>';
+		$ret .= '<ul>';
+		foreach( $results as $result ){
+			$ret .= '<li>' . $result . '</li>';
+		}
+
+		$ret .= '</ul>';
+
+		return $ret;
 	}
 
-	function maybe_order_row_alphabetically( $row, $user, $datetime_format, $columns, $order_fields_alphabetically ){
-		if( !$order_fields_alphabetically )
-			return $row;
-
-		return array_merge( array_flip( $columns ), $row );
-	}
-
-	public static function clean_bad_characters_formulas( $value ){
-		if( strlen( $value ) == 0 )
-			return $value;
-
-		$bad_characters = array( '+', '-', '=', '@' );
-		$first_character = substr( $value, 0, 1 );
-		if( in_array( $first_character, $bad_characters ) )
-			$value = "\\" . $first_character . substr( $value, 1 );
-
-		return $value;
-	}
-
-	public static function prepare( $key, $value, $datetime_format, $user = 0 ){
-		$timestamp_keys = apply_filters( 'acui_export_timestamp_keys', array( 'wc_last_active' ) );
-		$non_date_keys = apply_filters( 'acui_export_non_date_keys', array() );
-		$original_value = $value;
-
-		if( $key == 'role' ){
-			return self::get_role( $user );
-		}
-		if( is_array( $value ) || is_object( $value ) ){
-			return serialize( $value );
-		}
-		elseif( in_array( $key, $non_date_keys ) || empty( $datetime_format ) ){
-			return self::clean_bad_characters_formulas( $value );
-		}
-		elseif( strtotime( $value ) ){ // dates in datetime format
-			return date( $datetime_format, strtotime( $value ) );
-		}
-		elseif( is_int( $value ) && ( ( self::is_valid_timestamp( $value ) && strlen( $value ) > 4 ) || in_array( $key, $timestamp_keys) ) ){ // dates in timestamp format
-			return date( $datetime_format, $value );
-		}
-		else{
-			return apply_filters( 'acui_export_prepare', self::clean_bad_characters_formulas( $value ), $original_value );
-		}
-	}
-
-	static function get_role( $user_id ){
-		$user = get_user_by( 'id', $user_id );
-		return implode( ',', $user->roles );
-	}
-
-	function export_users_csv(){
-		check_ajax_referer( 'codection-security', 'security' );
+    function export_users_csv(){
+        check_ajax_referer( 'codection-security', 'security' );
 
 		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
 			wp_die( __( 'Only users who are able to create users can export them.', 'import-users-from-csv-with-meta' ) );
+    
+        $step = isset( $_POST['step'] ) ? absint( $_POST['step'] ) : 1;
+                
+        $exporter = new ACUI_Batch_Exporter();
 
-		$role = sanitize_text_field( $_POST['role'] );
-		$from = sanitize_text_field( $_POST['from'] );
-		$to = sanitize_text_field( $_POST['to'] );
-		$delimiter = sanitize_text_field( $_POST['delimiter'] );
-		$convert_timestamp = isset( $_POST['convert_timestamp'] ) && !empty( $_POST['convert_timestamp'] );
-		$datetime_format = ( $convert_timestamp ) ? sanitize_text_field( $_POST['datetime_format'] ) : '';
-		$order_fields_alphabetically = isset( $_POST['order_fields_alphabetically'] ) && !empty( $_POST['order_fields_alphabetically'] );
-
-		switch ( $delimiter ) {
-			case 'COMMA':
-				$delimiter = ",";
-				break;
-			
-			case 'COLON':
-				$delimiter = ":";
-				break;
-
-			case 'SEMICOLON':
-				$delimiter = ";";
-				break;
-
-			case 'TAB':
-				$delimiter = "\t";
-				break;
-
-            default:
-                $delimiter = ",";
-                break;
+		if( $step == 1 ){
+			delete_transient( 'acui_export_bad_character_formulas_values_cleaned' );
+			$this->save_settings();
 		}
+               
+        $exporter->set_page( $step );
+        $exporter->set_delimiter( sanitize_text_field( $_POST['delimiter'] ) );
+        $exporter->set_role( sanitize_text_field( $_POST['role'] ) );
+        $exporter->set_from( sanitize_text_field( $_POST['from'] ) );
+        $exporter->set_to( sanitize_text_field( $_POST['to'] ) );
+        $exporter->set_convert_timestamp( $_POST['convert_timestamp'] );
+        $exporter->set_datetime_format( sanitize_text_field( $_POST['datetime_format'] ) );
+        $exporter->set_order_fields_alphabetically( $_POST['order_fields_alphabetically'] );
+        $exporter->set_double_encapsulate_serialized_values( $_POST['double_encapsulate_serialized_values'] );
+		$exporter->set_display_arrays_as_comma_separated_list_of_values( $_POST['display_arrays_as_comma_separated_list_of_values'] );
+        $exporter->set_filtered_columns( ( isset( $_POST['columns'] ) && !empty( $_POST['columns'] ) ) ? $_POST['columns'] : array() );
+        $exporter->set_orderby( ( isset( $_POST['orderby'] ) && !empty( $_POST['orderby'] ) ) ? sanitize_text_field( $_POST['orderby'] ) : '' );
+        $exporter->set_order( ( isset( $_POST['order'] ) && !empty( $_POST['order'] ) ) ? sanitize_text_field( $_POST['order'] ) : 'ASC' );
+        $exporter->load_columns();
+    
+        $exporter->generate_file();
 
-		$data = array();
-		$row = array();
-		
-		// header
-		foreach ( $this->user_data as $key ) {
-			$row[] = $key;
-		}
+        if ( 100 <= $exporter->get_percent_complete() ) {
+            $query_args = array(
+                'nonce' => wp_create_nonce( 'codection-security' ),
+                'action' => 'download_user_csv',
+                'filename' => $exporter->get_filename()
+            );
 
-		$row[] = "role";
+            wp_send_json_success(
+                array(
+                    'step' => 'done',
+                    'percentage' => 100,
+                    'url' => add_query_arg( $query_args, admin_url( 'tools.php?page=acui&tab=export' ) ),
+					'results' => $this->get_results()
+                )
+            );
+        } else {
+            wp_send_json_success(
+                array(
+                    'step' => ++$step,
+                    'total_steps' => $exporter->get_total_steps(),
+                    'percentage' => $exporter->get_percent_complete(),
+                )
+            );
+        }
+    }
 
-		foreach ( $this->get_user_meta_keys() as $key ) {
-			$row[] = $key;
-		}
+	function ajax_save_settings(){
+		check_ajax_referer( 'codection-security', 'security' );
 
-		$row = apply_filters( 'acui_export_columns', $row, $order_fields_alphabetically );
-		$columns = $row;
-		$data[] = $row;
-		$row = array();
+		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+			wp_die( __( 'Only users who are able to create users can save settings about exporting them.', 'import-users-from-csv-with-meta' ) );
 
-		// data
-		$users = $this->get_user_id_list( $role, $from, $to );
-		foreach ( $users as $user ) {
-			$userdata = get_userdata( $user );
+		$this->save_settings();
 
-			foreach ( $this->user_data as $key ) {
-				$key = apply_filters( 'acui_export_get_key_user_data', $key );
-				$row[ $key ] = self::prepare( $key, $userdata->data->{$key}, $datetime_format, $user );
-			}
-
-			$row[] = $this->get_role( $user );
-
-			foreach ( $this->get_user_meta_keys() as $key ) {
-				$row[ $key ] = self::prepare( $key, get_user_meta( $user, $key, true ), $datetime_format, $user );
-			}
-
-			$row = $this->maybe_fill_empty_data( $row, $user );
-
-			$row = apply_filters( 'acui_export_data', $row, $user, $datetime_format, $columns, $order_fields_alphabetically );
-
-			$data[] = array_values( $row );
-			$row = array();
-		}
-
-		// export to csv
-		$file = fopen( $this->path_csv, "w" );
-
-		foreach ( $data as $line ) {
-			fputcsv( $file, $line, $delimiter );
-		}
-
-		fclose( $file );
-
-		$fsize = filesize( $this->path_csv ) + 3;
-		$path_parts = pathinfo( $this->path_csv );
-		header( "Content-type: text/csv;charset=utf-8" );
-		header( "Content-Disposition: attachment; filename=\"".$path_parts["basename"]."\"" );
-		header( "Content-length: $fsize" );
-		header( "Cache-control: privfilefleate" );
-		header( "Content-Description: File Transfer" );
-    	header( "Content-Transfer-Encoding: binary" );
-    	header( "Expires: 0" );
-    	header( "Cache-Control: must-revalidate" );
-    	header( "Pragma: public" );
-    	
-    	ob_clean();
-    	flush();
-
-    	echo "\xEF\xBB\xBF";
-    	readfile( $this->path_csv );
-
-		unlink( $this->path_csv );
-
-		wp_die();
+		wp_send_json_success( array( 'message' => __( 'Settings saved', 'import-users-from-csv-with-meta' ), ) );
 	}
 
-	function get_user_meta_keys() {
-	    global $wpdb;
-	    $meta_keys = array();
+	function save_settings(){
+		$settings = array();
 
-	    $select = "SELECT distinct $wpdb->usermeta.meta_key FROM $wpdb->usermeta";
-	    $usermeta = $wpdb->get_results( $select, ARRAY_A );
-	  
-	  	foreach ($usermeta as $key => $value) {
-			if( $value["meta_key"] == 'role' )
-				continue;
+		isset( $_POST['settings'] ) ? parse_str( $_POST['settings'], $settings) : parse_str( $_POST['form'], $settings);
 
-			$meta_keys[] = $value["meta_key"];
-		}
-
-	    return apply_filters( 'acui_export_get_user_meta_keys', $meta_keys );
-	}
-
-	function get_user_id_list( $role, $from, $to ){
-		$args = array( 'fields' => array( 'ID' ) );
-
-		if( !empty( $role ) )
-			$args['role'] = $role;
-
-		$date_query = array();
-
-		if( !empty( $from ) )
-			$date_query[] = array( 'after' => $from );
-		
-		if( !empty( $to ) )
-			$date_query[] = array( 'before' => $to );
-
-		if( !empty( $date_query ) ){
-			$date_query['inclusive'] = true;
-			$args['date_query'] = $date_query;
-		}
-
-		$users = get_users( $args );
-		$list = array();
-
-	    foreach ( $users as $user ) {
-	    	$list[] = $user->ID;
-	    }
-
-	    return $list;
-	}
-
-	function filter_key_user_id( $key ){
-		return ( $key == 'source_user_id' ) ? 'ID' : $key;
-	}
-
-	function maybe_fill_empty_data( $row, $user_id ){
-		if( empty( $row['user_login'] ) || empty( $row['user_email'] ) ){
-			$user = new WP_User( $user_id );
-
-			if( $user->ID == 0 )
-				return $row;
-
-			$row['user_login'] = $user->user_login;
-			$row['user_email'] = $user->user_email;
-		}
-		
-		return $row;
+		ACUISettings()->save_multiple( 'export_backend', $settings );
 	}
 }
-
 $acui_exporter = new ACUI_Exporter();

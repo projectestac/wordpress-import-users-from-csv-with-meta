@@ -33,10 +33,13 @@ class ACUI_Email_Options{
 								<span><?php _e( 'User created or edited', 'import-users-from-csv-with-meta' ); ?></span>
 							</legend>
 							<label for="automatic_created_edited_wordpress_email">
-								<select name="automatic_created_edited_wordpress_email" id="automatic_created_edited_wordpress_email">
-									<option <?php selected( $automatic_created_edited_wordpress_email, "false" ); ?> value="false"><?php _e( "Deactivate WordPress automatic email when an user is created or edited", 'import-users-from-csv-with-meta' ) ;?></option>
-									<option <?php selected( $automatic_created_edited_wordpress_email, "true" ); ?> value="true"><?php _e( 'Activate WordPress automatic email when an user is created or edited', 'import-users-from-csv-with-meta' ); ?></option>
-								</select>
+                                <?php ACUIHTML()->select( array(
+                                    'options' => array( 'false' => __( "Deactivate WordPress automatic email when an user is created or edited", 'import-users-from-csv-with-meta' ), 'true' => __( 'Activate WordPress automatic email when an user is created or edited', 'import-users-from-csv-with-meta' ) ),
+                                    'name' => 'automatic_created_edited_wordpress_email',
+                                    'selected' => $automatic_created_edited_wordpress_email,
+                                    'show_option_all' => false,
+                                    'show_option_none' => false,
+                                )); ?>
 								<span class="description"><? _e( "When you create or update an user, WordPress prepare and send automatic email, you can deactivate it here.", 'import-users-from-csv-with-meta' ); ?></span>
 							</label>
 						</fieldset>
@@ -50,15 +53,24 @@ class ACUI_Email_Options{
 								<span><?php _e( 'Send automatic change password WordPress emails?', 'import-users-from-csv-with-meta' ); ?></span>
 							</legend>
 							<label for="automatic_wordpress_email">
-								<select name="automatic_wordpress_email" id="automatic_wordpress_email">
-									<option <?php selected( $automatic_wordpress_email, "false" ); ?> value="false"><?php _e( "Deactivate WordPress automatic email when an user is updated or his password is changed", 'import-users-from-csv-with-meta' ) ;?></option>
-									<option <?php selected( $automatic_wordpress_email, "true" ); ?> value="true"><?php _e( 'Activate WordPress automatic email when an user is updated or his password is changed', 'import-users-from-csv-with-meta' ); ?></option>
-								</select>
+                                <?php ACUIHTML()->select( array(
+                                    'options' => array( 'false' => __( "Deactivate WordPress automatic email when an user is updated or his password is changed", 'import-users-from-csv-with-meta' ), 'true' => __( 'Activate WordPress automatic email when an user is updated or his password is changed', 'import-users-from-csv-with-meta' ) ),
+                                    'name' => 'automatic_wordpress_email',
+                                    'selected' => $automatic_wordpress_email,
+                                    'show_option_all' => false,
+                                    'show_option_none' => false,
+                                )); ?>
 								<span class="description"><? _e( "When you update an user or change his password, WordPress prepare and send automatic email, you can deactivate it here.", 'import-users-from-csv-with-meta' ); ?></span>
 							</label>
 						</fieldset>
 					</td>
 				</tr>
+			</tbody>
+		</table>
+
+		<h3><?php _e( 'Email templates from this plugin', 'import-users-from-csv-with-meta' ); ?></h3>
+		<table class="optiontable form-table">
+			<tbody>
 				<tr valign="top">
 					<th scope="row"><?php _e( 'Enable mail templates:', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
@@ -67,7 +79,7 @@ class ACUI_Email_Options{
 								<span><?php _e( 'Do you want to enable mail templates?', 'import-users-from-csv-with-meta' ); ?></span>
 							</legend>
 							<label for="enable_email_templates">
-								<input id="enable_email_templates" name="enable_email_templates" value="yes" type="checkbox" <?php checked( $enable_email_templates ); ?>>
+                                <?php ACUIHTML()->checkbox( array( 'name' => 'enable_email_templates', 'compare_value' => $enable_email_templates ) ); ?>
 								<span class="description"><? _e( "If you activate it, a new option in the menu will be created to store and manage mail templates, instead of using only the next one.", 'import-users-from-csv-with-meta' ); ?></span>
 							</label>
 						</fieldset>
@@ -83,7 +95,7 @@ class ACUI_Email_Options{
 								<span><?php _e( 'Do you want to disable WP Editor?', 'import-users-from-csv-with-meta' ); ?></span>
 							</legend>
 							<label for="disable_wp_editor">
-								<input id="disable_wp_editor" name="disable_wp_editor" value="yes" type="checkbox" <?php checked( $disable_wp_editor ); ?>>
+                                <?php ACUIHTML()->checkbox( array( 'name' => 'disable_wp_editor', 'compare_value' => $disable_wp_editor ) ); ?>
 								<span class="description"><?php _e( 'If you want to use email with custom HTML and CSS tags, disable WP Editor', 'import-users-from-csv-with-meta' ); ?></span>
 							</label>
 						</fieldset>
@@ -113,7 +125,7 @@ class ACUI_Email_Options{
 		<fieldset>
 			<div>
 				<label for="email_template_attachment_file"><?php _e( 'Attachment', 'import-users-from-csv-with-meta' )?></label><br>
-				<input type="url" class="large-text" name="email_template_attachment_file" id="email_template_attachment_file" value="<?php echo wp_get_attachment_url( $attachment_id ); ?>" readonly/><br>
+                <?php ACUIHTML()->text( array( 'type' => 'url', 'name' => 'email_template_attachment_file', 'value' => wp_get_attachment_url( $attachment_id ), 'class' => 'large-text', 'readonly' => true ) ); ?>
 				<input type="hidden" name="email_template_attachment_id" id="email_template_attachment_id" value="<?php echo $attachment_id ?>"/>
 				<button type="button" class="button" id="acui_email_option_upload_button"><?php _e( 'Upload file', 'import-users-from-csv-with-meta' )?></button>
 				<button type="button" class="button" id="acui_email_option_remove_upload_button"><?php _e( 'Remove file', 'import-users-from-csv-with-meta' )?></button>
@@ -123,6 +135,7 @@ class ACUI_Email_Options{
 		<br/>
 		<input class="button-primary" type="submit" value="<?php _e( 'Save email template and options', 'import-users-from-csv-with-meta'); ?>" id="save_mail_template_options"/>
 		<input class="button-primary" type="button" value="<?php _e( 'Send test email', 'import-users-from-csv-with-meta'); ?>" id="send_test_email" title="<?php _e( 'This test email will be sent to the current user', 'import-users-from-csv-with-meta'); ?>"/>
+        <?php _e( 'If you send a test email, no wildcards will be replaced becuase when you test, we have no data to replace.', 'import-users-from-csv-with-meta' ); ?>
 
 		<?php wp_nonce_field( 'codection-security', 'security' ); ?>
 		
@@ -153,7 +166,7 @@ class ACUI_Email_Options{
 		$body_mail = wp_kses_post( stripslashes( $form_data["body_mail"] ) );
 		$template_id = intval( $form_data["template_id"] );
 		$email_template_attachment_id = intval( $form_data["email_template_attachment_id"] );
-		$disable_wp_editor = isset( $form_data['disable_wp_editor'] ) && $form_data['disable_wp_editor'] == 'yes';
+		$disable_wp_editor = isset( $form_data['disable_wp_editor'] ) && $form_data['disable_wp_editor'] == '1';
 
 		remove_filter( 'wp_kses_allowed_html', array( $this, 'allow_more_post_tags' ), 10, 2 );
 	
@@ -184,54 +197,17 @@ class ACUI_Email_Options{
 	}
 
 	static function send_email( $user_object, $positions = array(), $headers = array(), $data = array(), $created = false, $password = '' ){
-		$acui_helper = new ACUI_Helper();
-		
-		$key = get_password_reset_key( $user_object );
-		$wp_users_fields = $acui_helper->get_wp_users_fields();
-
 		$user_id = $user_object->ID;
-		$user_login= $user_object->user_login;
 		$user_email = $user_object->user_email;
+		$key = get_password_reset_key( $user_object );
 		
 		$body = apply_filters( 'acui_import_email_body_source', get_option( "acui_mail_body" ), $headers, $data, $created, $user_id );
 		$subject = apply_filters( 'acui_import_email_subject_source', get_option( "acui_mail_subject" ), $headers, $data, $created, $user_id );
-								
-		$body = str_replace( "**loginurl**", wp_login_url(), $body );
-		$body = str_replace( "**username**", $user_login, $body );
-		$body = str_replace( "**lostpasswordurl**", wp_lostpassword_url(), $body );
-		$subject = str_replace( "**username**", $user_login, $subject );
-
-		if( !is_wp_error( $key ) ){
-			$passwordreseturl = apply_filters( 'acui_email_passwordreseturl', network_site_url( 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user_login ), 'login' ) );
-			$body = str_replace( "**passwordreseturl**", $passwordreseturl, $body );
 		
-			$passwordreseturllink = wp_sprintf( '<a href="%s">%s</a>', $passwordreseturl, __( 'Password reset link', 'import-users-from-csv-with-meta' ) );
-			$body = str_replace( "**passwordreseturllink**", $passwordreseturllink, $body );
-		}
-		
-		if( empty( $password ) && !$created ){
-			$password = __( 'Password has not been changed', 'import-users-from-csv-with-meta' );
-		}
+		$body = self::apply_wildcards( $body, $user_object, $created, $positions, $headers, $data, $password, $key );
+		$subject = self::apply_wildcards( $subject, $user_object, $created, $positions, $headers, $data, $password, $key );
 
-		$body = str_replace( "**password**", $password, $body );
-		$body = str_replace( "**email**", $user_email, $body );
-
-		foreach ( $wp_users_fields as $wp_users_field ) {								
-			if( $positions[ $wp_users_field ] != false && $wp_users_field != "password" ){
-				$body = str_replace( "**" . $wp_users_field .  "**", $data[ $positions[ $wp_users_field ] ] , $body );
-				$subject = str_replace( "**" . $wp_users_field .  "**", $data[ $positions[ $wp_users_field ] ] , $subject );
-			}
-		}
-
-		for( $i = 0 ; $i < count( $headers ); $i++ ) {
-			$data[ $i ] = ( is_array( $data[ $i ] ) ) ? implode( "-", $data[ $i ] ) : $data[ $i ];
-			$body = str_replace( "**" . $headers[ $i ] .  "**", $data[ $i ] , $body );
-			$subject = str_replace( "**" . $headers[ $i ] .  "**", $data[ $i ] , $subject );
-		}
-		
 		$body = apply_filters( 'acui_import_email_body_before_wpautop', $body, $headers, $data, $created, $user_id );
-
-		$body = wpautop( $body );
 		
 		$attachments = array();
 		$attachment_id = get_option( 'acui_mail_attachment_id' );
@@ -240,11 +216,72 @@ class ACUI_Email_Options{
 
 		$email_to = apply_filters( 'acui_import_email_to', $user_email, $headers, $data, $created, $user_id );
 		$subject = apply_filters( 'acui_import_email_subject', $subject, $headers, $data, $created, $user_id );
-		$body = apply_filters( 'acui_import_email_body', $body, $headers, $data, $created, $user_id );
+		$body = apply_filters( 'acui_import_email_body', wpautop( $body ), $headers, $data, $created, $user_id );
 		$headers_mail = apply_filters( 'acui_import_email_headers', array( 'Content-Type: text/html; charset=UTF-8' ), $headers, $data, $created, $user_id );
 		$attachments = apply_filters( 'acui_import_email_attachments', $attachments, $headers, $data, $created, $user_id );
 
 		wp_mail( $email_to, $subject, $body, $headers_mail, $attachments );
+	}
+
+	static function apply_wildcards( $string, $user_object, $created, $positions, $headers, $data, $password, $key ){
+		$wp_users_fields = ACUIHelper()->get_wp_users_fields();
+
+		$user_login = $user_object->user_login;
+		$user_email = $user_object->user_email;
+		
+		$string = str_replace( "**username**", $user_login, $string );
+		$string = str_replace( "**password**", $password, $string );
+		$string = str_replace( "**email**", $user_email, $string );
+
+		$string = str_replace( "**loginurl**", wp_login_url(), $string );
+		$string = str_replace( "**lostpasswordurl**", wp_lostpassword_url(), $string );
+
+		if( !is_wp_error( $key ) ){
+			if( is_multisite() ){
+				$sites = get_blogs_of_user( $user_object->ID );
+
+				if( count( $sites ) == 1 ){
+					$passwordreseturl = get_site_url( array_keys( $sites )[0], 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user_login ), 'login' );
+				}
+				else{
+					$passwordreseturl = network_site_url( 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user_login ), 'login' );
+				}
+			}
+			else{
+				$passwordreseturl = site_url( 'wp-login.php?action=rp&key=' . $key . '&login=' . rawurlencode( $user_login ), 'login' );
+			}
+
+			$passwordreseturl = apply_filters( 'acui_email_passwordreseturl', $passwordreseturl );
+			
+			$string = str_replace( "**passwordreseturl**", $passwordreseturl, $string );
+		
+			$passwordreseturllink = wp_sprintf( '<a href="%s">%s</a>', $passwordreseturl, __( 'Password reset link', 'import-users-from-csv-with-meta' ) );
+			$string = str_replace( "**passwordreseturllink**", $passwordreseturllink, $string );
+		}
+		
+		if( empty( $password ) && !$created ){
+			$password = __( 'Password has not been changed', 'import-users-from-csv-with-meta' );
+		}
+
+		foreach ( $wp_users_fields as $wp_users_field ) {								
+			if( $positions[ $wp_users_field ] != false && $wp_users_field != "password" ){
+				$string = str_replace( "**" . $wp_users_field .  "**", $data[ $positions[ $wp_users_field ] ] , $string );
+			}
+		}
+
+		for( $i = 0 ; $i < count( $headers ); $i++ ) {
+			$to_replace = "**" . $headers[ $i ] .  "**";
+			
+			if( strpos( $string, $to_replace ) === false )
+				continue;
+			
+			$data[ $i ] = ( is_array( $data[ $i ] ) ) ? implode( "-", $data[ $i ] ) : $data[ $i ];
+			$string = str_replace( $to_replace, $data[ $i ] , $string );
+		}
+
+		$string = apply_filters( 'acui_email_apply_wildcards', $string, array( 'key' => $key, 'user_login' => $user_login ) );
+
+		return $string;
 	}
 
 	function load_scripts( $hook ) {

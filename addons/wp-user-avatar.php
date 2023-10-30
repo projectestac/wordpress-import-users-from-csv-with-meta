@@ -1,5 +1,4 @@
 <?php
-
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
 if( !is_plugin_active( 'wp-user-avatar/wp-user-avatar.php' ) ){
@@ -19,7 +18,7 @@ class ACUI_WPUA{
         add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation_after_plugins_activated' ) );
         add_action( 'post_acui_import_single_user', array( $this, 'post_import_single_user' ), 10, 3 );
         add_filter( 'acui_export_columns', array( $this, 'export_columns' ), 10, 1 );
-		add_filter( 'acui_export_data', array( $this, 'export_data' ), 10, 3 );
+		add_filter( 'acui_export_data', array( $this, 'export_data' ), 10, 2 );
     }
 
     function restricted_fields( $acui_restricted_fields ){
@@ -54,7 +53,7 @@ class ACUI_WPUA{
     }
 
     function export_columns( $row ){
-		$row[] = 'user_avatar';
+		$row['user_avatar'] = 'user_avatar';
 		return $row;
 	}
 

@@ -17,7 +17,7 @@ class ACUI_Cron{
 		$next_timestamp = wp_next_scheduled( 'acui_cron_process' );
 		$period = sanitize_text_field( $form_data[ "period" ] );
 
-		if( isset( $form_data["cron-activated"] ) && $form_data["cron-activated"] == "yes" ){
+		if( isset( $form_data["cron-activated"] ) && $form_data["cron-activated"] == "1" ){
 			update_option( "acui_cron_activated", true );
 
 			$old_period = get_option( "acui_cron_period" );
@@ -35,20 +35,25 @@ class ACUI_Cron{
 			wp_unschedule_event( $next_timestamp, 'acui_cron_process');
 		}
 		
-		update_option( "acui_cron_send_mail", isset( $form_data["send-mail-cron"] ) && $form_data["send-mail-cron"] == "yes" );
-		update_option( "acui_cron_send_mail_updated", isset( $form_data["send-mail-updated"] ) && $form_data["send-mail-updated"] == "yes" );
-		update_option( "acui_cron_delete_users", isset( $form_data["cron-delete-users"] ) && $form_data["cron-delete-users"] == "yes" );
-		update_option( "acui_cron_delete_users_assign_posts", sanitize_text_field( $form_data["cron-delete-users-assign-posts"] ) );
-		update_option( "acui_move_file_cron", isset( $form_data["move-file-cron"] ) && $form_data["move-file-cron"] == "yes" );
-		update_option( "acui_cron_path_to_move_auto_rename", isset( $form_data["path_to_move_auto_rename"] ) && $form_data["path_to_move_auto_rename"] == "yes" );
-		update_option( "acui_cron_allow_multiple_accounts", ( isset( $form_data["allow_multiple_accounts"] ) && $form_data["allow_multiple_accounts"] == "yes" ) ? "allowed" : "not_allowed" );
+		update_option( "acui_cron_send_mail", isset( $form_data["send-mail-cron"] ) && $form_data["send-mail-cron"] == "1" );
+		update_option( "acui_cron_send_mail_updated", isset( $form_data["send-mail-updated"] ) && $form_data["send-mail-updated"] == "1" );
+		update_option( "acui_cron_delete_users", isset( $form_data["cron-delete-users"] ) && $form_data["cron-delete-users"] == "1" );
+		
+        if( isset( $form_data["cron-delete-users-assign-posts"] ) )
+            update_option( "acui_cron_delete_users_assign_posts", sanitize_text_field( $form_data["cron-delete-users-assign-posts"] ) );
+
+		update_option( "acui_move_file_cron", isset( $form_data["move-file-cron"] ) && $form_data["move-file-cron"] == "1" );
+		update_option( "acui_cron_path_to_move_auto_rename", isset( $form_data["path_to_move_auto_rename"] ) && $form_data["path_to_move_auto_rename"] == "1" );
+		update_option( "acui_cron_allow_multiple_accounts", ( isset( $form_data["allow_multiple_accounts"] ) && $form_data["allow_multiple_accounts"] == "1" ) ? "allowed" : "not_allowed" );
 		update_option( "acui_cron_path_to_file", sanitize_text_field( $form_data["path_to_file"] ) );
 		update_option( "acui_cron_path_to_move", sanitize_text_field( $form_data["path_to_move"] ) );
 		update_option( "acui_cron_period", sanitize_text_field( $form_data["period"] ) );
 		update_option( "acui_cron_role", sanitize_text_field( $form_data["role"] ) );
-		update_option( "acui_cron_update_roles_existing_users", isset( $form_data["update-roles-existing-users"] ) && $form_data["update-roles-existing-users"] == "yes" );
-		update_option( "acui_cron_change_role_not_present", isset( $form_data["cron-change-role-not-present"] ) && $form_data["cron-change-role-not-present"] == "yes" );
-		update_option( "acui_cron_change_role_not_present_role", sanitize_text_field( $form_data["cron-change-role-not-present-role"] ) );
+		update_option( "acui_cron_update_roles_existing_users", isset( $form_data["update-roles-existing-users"] ) && $form_data["update-roles-existing-users"] == "1" );
+		update_option( "acui_cron_change_role_not_present", isset( $form_data["cron-change-role-not-present"] ) && $form_data["cron-change-role-not-present"] == "1" );
+		
+        if( isset( $form_data["cron-change-role-not-present-role"] ) )
+            update_option( "acui_cron_change_role_not_present_role", sanitize_text_field( $form_data["cron-change-role-not-present-role"] ) );
 		?>
 		<div class="updated">
 	       <p><?php _e( 'Settings updated correctly', 'import-users-from-csv-with-meta' ) ?></p>
@@ -107,6 +112,10 @@ class ACUI_Cron{
 	}
 
 	public static function admin_gui(){
+		$upload_dir = wp_upload_dir();
+		$sample_path = $upload_dir["path"] . '/test.csv';
+		$sample_url = plugin_dir_url( dirname( __FILE__ ) ) . 'test.csv';
+
 		$cron_activated = get_option( "acui_cron_activated");
 		$send_mail_cron = get_option( "acui_cron_send_mail");
 		$send_mail_updated = get_option( "acui_cron_send_mail_updated");
@@ -123,7 +132,6 @@ class ACUI_Cron{
 		$path_to_move_auto_rename = get_option( "acui_cron_path_to_move_auto_rename");
 		$log = get_option( "acui_cron_log");
 		$allow_multiple_accounts = get_option("acui_cron_allow_multiple_accounts");
-		$loaded_periods = wp_get_schedules();
 
 		$rest_api_execute_cron_url = home_url() . '/wp-json/import-users-from-csv-with-meta/v1/execute-cron/';
 
@@ -175,26 +183,28 @@ class ACUI_Cron{
 				<tr class="form-field form-required">
 					<th scope="row"><label for="cron-activated"><?php _e( 'Activate periodical import?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<input type="checkbox" name="cron-activated" value="yes" <?php if( $cron_activated == true ) echo "checked='checked'"; ?>/>
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'cron-activated', 'compare_value' => $cron_activated ) ); ?>
 					</td>
 				</tr>
 
 				<tr class="form-field">
-					<th scope="row"><label for="path_to_file"><?php _e( "Path of file that are going to be imported", 'import-users-from-csv-with-meta' ); ?></label></th>
+					<th scope="row"><label for="path_to_file"><?php _e( "Path or URL of file that are going to be imported", 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<input placeholder="<?php _e('Insert complete path to the file', 'import-users-from-csv-with-meta' ) ?>" type="text" name="path_to_file" id="path_to_file" value="<?php echo $path_to_file; ?>" style="width:70%;" />
-						<p class="description"><?php _e( 'You have to introduce the path to file, i.e.:', 'import-users-from-csv-with-meta' ); ?> <?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/test.csv</p>
+                        <?php ACUIHTML()->text( array( 'name' => 'path_to_file', 'value' => $path_to_file, 'class' => '', 'placeholder' => __( 'Insert complete path to the file', 'import-users-from-csv-with-meta' ) ) ); ?>
+						<p class="description"><?php printf( __( 'You have to enter the URL or the path to the file, i.e.: %s or %s' ,'import-users-from-csv-with-meta' ), $sample_path, $sample_url ); ?></p>
 					</td>
 				</tr>
 
 				<tr class="form-field form-required">
 					<th scope="row"><label for="period"><?php _e( 'Period', 'import-users-from-csv-with-meta' ); ?></label></th>
-					<td>	
-						<select id="period" name="period">
-							<?php foreach( $loaded_periods as $key => $value ): ?>
-							<option <?php if( $period == $key ) echo "selected='selected'"; ?> value="<?php echo $key; ?>"><?php echo $value['display']; ?></option>
-							<?php endforeach; ?>
-						</select>
+					<td>
+                        <?php ACUIHTML()->select( array(
+                            'options' => ACUI_Helper::get_loaded_periods(),
+                            'name' => 'period',
+                            'selected' => $period,
+                            'show_option_all' => false,
+                            'show_option_none' => false,
+                        )); ?>
 						<p class="description"><?php _e( 'How often the event should reoccur?', 'import-users-from-csv-with-meta' ); ?></p>
 					</td>
 				</tr>
@@ -202,36 +212,27 @@ class ACUI_Cron{
 				<tr class="form-field form-required">
 					<th scope="row"><label for="send-mail-cron"><?php _e( 'Send mail when using periodical import?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<input type="checkbox" name="send-mail-cron" value="yes" <?php if( $send_mail_cron == true ) echo "checked='checked'"; ?>/>
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'send-mail-cron', 'compare_value' => $send_mail_cron ) ); ?>
 					</td>
 				</tr>
 
 				<tr class="form-field form-required">
 					<th scope="row"><label for="send-mail-updated"><?php _e( 'Send mail also to users that are being updated?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<input type="checkbox" name="send-mail-updated" value="yes" <?php if( $send_mail_updated == true ) echo "checked='checked'"; ?>/>
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'send-mail-updated', 'compare_value' => $send_mail_updated ) ); ?>
 					</td>
 				</tr>
 
 				<tr class="form-field form-required">
 					<th scope="row"><label for="role"><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<select id="role" name="role">
-							<?php 
-								if( $role == '' )
-									echo "<option selected='selected' value=''>" . __( 'Disable role assignment in cron import', 'import-users-from-csv-with-meta' )  . "</option>";
-								else
-									echo "<option value=''>" . __( 'Disable role assignment in cron import', 'import-users-from-csv-with-meta' )  . "</option>";
-
-								$list_roles = ACUI_Helper::get_editable_roles();						
-								foreach ($list_roles as $key => $value) {
-									if($key == $role)
-										echo "<option selected='selected' value='$key'>$value</option>";
-									else
-										echo "<option value='$key'>$value</option>";
-								}
-							?>
-						</select>
+                        <?php ACUIHTML()->select( array(
+                            'options' => ACUI_Helper::get_editable_roles(),
+                            'name' => 'role',
+                            'selected' => $role,
+                            'show_option_all' => false,
+                            'show_option_none' => __( 'Disable role assignment in cron import', 'import-users-from-csv-with-meta' ),
+                        )); ?>
 						<p class="description"><?php _e( 'Which role would be used to import users?', 'import-users-from-csv-with-meta' ); ?></p>
 					</td>
 				</tr>
@@ -239,7 +240,7 @@ class ACUI_Cron{
 				<tr class="form-field form-required">
 					<th scope="row"><label for="update-roles-existing-users"><?php _e( 'Update roles for existing users?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<input type="checkbox" name="update-roles-existing-users" value="yes" <?php if( $update_roles_existing_users ) echo "checked='checked'"; ?>/>
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'update-roles-existing-users', 'compare_value' => $update_roles_existing_users ) ); ?>
 					</td>
 				</tr>
 
@@ -247,11 +248,11 @@ class ACUI_Cron{
 					<th scope="row"><label for="move-file-cron"><?php _e( 'Move file after import?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<div style="float:left;">
-							<input type="checkbox" name="move-file-cron" value="yes" <?php if( $move_file_cron == true ) echo "checked='checked'"; ?>/>
+                            <?php ACUIHTML()->checkbox( array( 'name' => 'move-file-cron', 'compare_value' => $move_file_cron ) ); ?>
 						</div>
 
 						<div class="move-file-cron-cell" style="margin-left:25px;">
-							<input placeholder="<?php _e( 'Insert complete path to the file', 'import-users-from-csv-with-meta'); ?>" type="text" name="path_to_move" id="path_to_move" value="<?php echo $path_to_move; ?>" style="width:70%;" />
+                            <?php ACUIHTML()->text( array( 'name' => 'path_to_move', 'value' => $path_to_move, 'class' => '', 'placeholder' => __( 'Insert complete path to the file', 'import-users-from-csv-with-meta' ) ) ); ?>
 							<p class="description"><?php _e( 'You have to introduce the path to file, i.e.:', 'import-users-from-csv-with-meta'); ?> <?php $upload_dir = wp_upload_dir(); echo $upload_dir["path"]; ?>/move.csv</p>
 						</div>
 					</td>
@@ -261,7 +262,7 @@ class ACUI_Cron{
 					<th scope="row"><label for="move-file-cron"><?php _e( 'Auto rename after move?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<div style="float:left;">
-							<input type="checkbox" name="path_to_move_auto_rename" value="yes" <?php if( $path_to_move_auto_rename == true ) echo "checked='checked'"; ?>/>
+                            <?php ACUIHTML()->checkbox( array( 'name' => 'path_to_move_auto_rename', 'compare_value' => $path_to_move_auto_rename ) ); ?>
 						</div>
 
 						<div style="margin-left:25px;">
@@ -282,25 +283,16 @@ class ACUI_Cron{
 					<th scope="row"><label for="cron-delete-users"><?php _e( 'Delete users that are not present in the CSV?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<div style="float:left; margin-top: 10px;">
-							<input type="checkbox" name="cron-delete-users" id="cron-delete-users" value="yes" <?php if( $cron_delete_users == true ) echo "checked='checked'"; ?>/>
+                            <?php ACUIHTML()->checkbox( array( 'name' => 'cron-delete-users', 'compare_value' => $cron_delete_users ) ); ?>
 						</div>
 						<div style="margin-left:25px;">
-							<select id="cron-delete-users-assign-posts" name="cron-delete-users-assign-posts">
-								<?php
-									if( $cron_delete_users_assign_posts == '' )
-										echo "<option selected='selected' value=''>" . __( 'Delete posts of deleted users without assigning to any user', 'import-users-from-csv-with-meta' ) . "</option>";
-									else
-										echo "<option value=''>" . __( 'Delete posts of deleted users without assigning to any user', 'import-users-from-csv-with-meta' ) . "</option>";
-
-									$blogusers = get_users( array( 'fields' => array( 'ID', 'display_name' ) ) );
-									
-									foreach ( $blogusers as $bloguser ) {
-										if( $bloguser->ID == $cron_delete_users_assign_posts )
-											echo "<option selected='selected' value='{$bloguser->ID}'>{$bloguser->display_name}</option>";
-										else
-											echo "<option value='{$bloguser->ID}'>{$bloguser->display_name}</option>";
-									}
-								?>
+                            <?php ACUIHTML()->select( array(
+                                'options' => ACUI_Helper::get_list_users_with_display_name(),
+                                'name' => 'cron-delete-users-assign-posts',
+                                'selected' => $cron_delete_users_assign_posts,
+                                'show_option_all' => false,
+                                'show_option_none' => __( 'Delete posts of deleted users without assigning to any user', 'import-users-from-csv-with-meta' ),
+                            )); ?>
 							</select>
 							<p class="description"><?php _e( 'Administrators will not be deleted anyway. After delete users, we can choose if we want to assign their posts to another user. If you do not choose some user, content will be deleted.', 'import-users-from-csv-with-meta' ); ?></p>
 						</div>
@@ -311,17 +303,16 @@ class ACUI_Cron{
 					<th scope="row"><label for="cron-change-role-not-present"><?php _e( 'Change role of users that are not present in the CSV?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
 						<div style="float:left; margin-top: 10px;">
-							<input type="checkbox" name="cron-change-role-not-present" id="cron-change-role-not-present" value="yes" <?php checked( $cron_change_role_not_present ); ?> />
+                            <?php ACUIHTML()->checkbox( array( 'name' => 'cron-change-role-not-present', 'compare_value' => $cron_change_role_not_present ) ); ?>
 						</div>
 						<div style="margin-left:25px;">
-							<select name="cron-change-role-not-present-role" id="cron-change-role-not-present-role">
-								<?php
-									$list_roles = ACUI_Helper::get_editable_roles();
-									foreach ($list_roles as $key => $value):
-								?>
-									<option value='<?php echo $key; ?>' <?php selected( $cron_change_role_not_present_role, $key ); ?> ><?php echo $value; ?></option>
-								<?php endforeach; ?>
-							</select>
+                            <?php ACUIHTML()->select( array(
+                                'options' => ACUI_Helper::get_editable_roles(),
+                                'name' => 'cron-change-role-not-present-role',
+                                'selected' => $cron_change_role_not_present_role,
+                                'show_option_all' => false,
+                                'show_option_none' => false,
+                            )); ?>
 							<p class="description"><?php _e( 'After import users which is not present in the CSV and can be changed to a different role.', 'import-users-from-csv-with-meta' ); ?></p>
 						</div>
 					</td>
@@ -393,24 +384,20 @@ class ACUI_Cron{
 
 			function check_delete_users_checked(){
 				if( $('#cron-delete-users').is(':checked') ){
+                    $( '#cron-delete-users-assign-posts' ).prop( 'disabled', false );
 					$( '#cron-change-role-not-present-role' ).prop( 'disabled', true );
 					$( '#cron-change-role-not-present' ).prop( 'disabled', true );				
 				} else {
+                    $( '#cron-delete-users-assign-posts' ).prop( 'disabled', true );
 					$( '#cron-change-role-not-present-role' ).prop( 'disabled', false );
 					$( '#cron-change-role-not-present' ).prop( 'disabled', false );
 				}
 			}
 
 			$( "[name='cron-delete-users']" ).change(function() {
-		        if( $(this).is( ":checked" ) ) {
+		        if( $ (this ).is( ":checked" ) ) {
 		            var returnVal = confirm("<?php _e( 'Are you sure to delete all users that are not present in the CSV? This action cannot be undone.', 'import-users-from-csv-with-meta' ); ?>");
-		            $(this).attr("checked", returnVal);
-
-		            if( returnVal )
-		            	$( '#cron-delete-users-assign-posts' ).show();
-		        }
-		        else{
-	       	        $( '#cron-delete-users-assign-posts' ).hide();     	        
+		            $( this ).prop( "checked", returnVal );
 		        }
 		    });
 
@@ -422,10 +409,6 @@ class ACUI_Cron{
 		        	$( '.move-file-cron-cell' ).hide();
 		        }
 		    });
-
-		    <?php if( $cron_delete_users == '' ): ?>
-		    $( '#cron-delete-users-assign-posts' ).hide();
-		    <?php endif; ?>
 
 		    <?php if( !$move_file_cron ): ?>
 		    $( '.move-file-cron-cell' ).hide();

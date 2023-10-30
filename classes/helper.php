@@ -1,6 +1,33 @@
 <?php
 
 class ACUI_Helper{
+    private static $instance;
+
+    function __construct(){
+    }
+
+    private static function is_instantiated() {
+		if ( ! empty( self::$instance ) && ( self::$instance instanceof ACUI_Helper ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+    private static function setup_instance() {
+		self::$instance = new ACUI_Helper;
+	}
+
+    static function instance() {
+		if ( self::is_instantiated() ) {
+			return self::$instance;
+		}
+
+		self::setup_instance();
+
+		return self::$instance;
+	}
+
     function detect_delimiter( $file ) {
         $delimiters = array(
             ';' => 0,
@@ -38,7 +65,7 @@ class ACUI_Helper{
         return $roles;
     }
 
-    static function get_editable_roles() {
+    static function get_editable_roles( $include_no_role = true ){
         global $wp_roles;
     
         $all_roles = $wp_roles->roles;
@@ -46,9 +73,41 @@ class ACUI_Helper{
         $list_editable_roles = array();
     
         foreach ($editable_roles as $key => $editable_role)
-            $list_editable_roles[$key] = $editable_role["name"];
+            $list_editable_roles[$key] = translate_user_role( $editable_role["name"] );
+
+        if( $include_no_role )
+            $list_editable_roles['no_role'] = __( 'No role', 'import-users-from-csv-with-meta' );
         
         return $list_editable_roles;
+    }
+
+    static function get_csv_delimiters_titles(){
+        return array(
+            'COMMA' => __( 'Comma', 'import-users-from-csv-with-meta' ),
+            'COLON' => __( 'Colon', 'import-users-from-csv-with-meta' ),
+            'SEMICOLON' => __( 'Semicolon', 'import-users-from-csv-with-meta' ),
+            'TAB' => __( 'Tab', 'import-users-from-csv-with-meta' ),
+        );
+    }
+
+    static function get_list_users_with_display_name(){
+        $blogusers = get_users( array( 'fields' => array( 'ID', 'display_name' ) ) );
+        $result = array();
+									
+        foreach ( $blogusers as $bloguser )
+            $result[ $bloguser->ID ] = $bloguser->display_name;
+
+        return $result;
+    }
+
+    static function get_loaded_periods(){
+        $loaded_periods = wp_get_schedules();
+        $result = array();
+
+        foreach ( $loaded_periods as $key => $value )
+            $result[ $key ] = $value['display'];
+
+        return $result;
     }
 
     static function get_errors_by_row( $errors, $row, $type = 'error' ){
@@ -103,14 +162,65 @@ class ACUI_Helper{
         return $prefix . $rnd_str;
     }
 
-    function new_error( $row, $message = '', $type = 'error' ){
+    function array_one_dimension($array) {
+        $one_dimension = true;
+    
+        array_walk_recursive($array, function ($value) use (&$one_dimension) {
+            if( is_array( $value ) ) {
+                $one_dimension = false;
+            }
+        });
+    
+        return $one_dimension;
+    }
+
+    function array_correlative_index( $array ) {
+        if( !is_array( $array ) ) {
+            return false;
+        }
+    
+        $expectedKey = 0;
+    
+        foreach( $array as $key => $value ) {
+            if ($key !== $expectedKey) {
+                return false;
+            }
+            $expectedKey++;
+        }
+    
+        return true;
+    }
+
+    function array_contains_wp_error( $array ) {
+        foreach( $array as $key => $value ){
+            if( is_wp_error( $value ) )
+                return true;
+        }
+
+        return false;
+    }
+
+    function new_error( $row, &$errors_totals, $message = '', $type = 'error' ){
+        switch( $type ){
+            case 'error':
+                $errors_totals['errors']++;
+                break;
+
+            case 'warning':
+                $errors_totals['warnings']++;
+                break;
+            
+            case 'notice':
+                $errors_totals['notices']++;
+                break;
+        }
         return array( 'row' => $row, 'message' => $message, 'type' => $type );
     }
 
-    function maybe_update_email( $user_id, $email, $password, $update_emails_existing_users ){
+    function maybe_update_email( $user_id, $email, $password, $update_emails_existing_users, $original_email ){
         $user_object = get_user_by( 'id', $user_id );
 
-        if( $user_object->user_email == $email )
+        if( $user_object->user_email == $email || ( apply_filters( 'acui_allow_no_email', false ) && empty( $original_email ) ) )
             return $user_id;
 
         switch( $update_emails_existing_users ){
@@ -128,8 +238,7 @@ class ACUI_Helper{
                     'user_email'  =>  $email,
                     'user_pass'   =>  $password
                 ) );
-            break;
-           
+            break;           
         }
 
         return $user_id;
@@ -137,12 +246,9 @@ class ACUI_Helper{
 
     static function get_attachment_id_by_url( $url ) {
         $wp_upload_dir = wp_upload_dir();
-        // Strip out protocols, so it doesn't fail because searching for http: in https: dir.
         $dir = set_url_scheme( trailingslashit( $wp_upload_dir['baseurl'] ), 'relative' );
     
-        // Is URL in uploads directory?
-        if ( false !== strpos( $url, $dir ) ) {
-    
+        if ( false !== strpos( $url, $dir ) ) {    
             $file = basename( $url );
     
             $query_args = array(
@@ -227,7 +333,7 @@ class ACUI_Helper{
                 <tr>
                     <th><?php _e( 'Row', 'import-users-from-csv-with-meta' ); ?></th>
                     <?php foreach( $headers as $element ): 
-                        echo "<th>" . $element . "</th>"; 
+                        echo "<th>" . esc_html( $element ) . "</th>"; 
                     endforeach; ?>
                     <?php do_action( 'acui_header_table_extra_rows' ); ?>
                 </tr>
@@ -236,7 +342,7 @@ class ACUI_Helper{
                 <tr>
                     <th><?php _e( 'Row', 'import-users-from-csv-with-meta' ); ?></th>
                     <?php foreach( $headers as $element ): 
-                        echo "<th>" . $element . "</th>"; 
+                        echo "<th>" . esc_html( $element ) . "</th>"; 
                     endforeach; ?>
                     <?php do_action( 'acui_header_table_extra_rows' ); ?>
                 </tr>
@@ -262,12 +368,22 @@ class ACUI_Helper{
         foreach ( $data as $element ){
             if( is_wp_error( $element ) )
                 $element = $element->get_error_message();
+            elseif( is_object( $element ) ){
+                $element = serialize( $element );
+            }
             elseif( is_array( $element ) ){
                 $element_string = '';
                 $i = 0;
 
                 foreach( $element as $it => $el ){
-                    $element_string .= ( is_wp_error( $el ) ? $el->get_error_message() : $el );
+                    if( is_wp_error( $el ) )
+                        $element_string .= $el->get_error_message();
+                    elseif( is_array( $el ) || is_object( $el ) )
+                        $element_string .= serialize( $el );
+                    elseif( !is_int( $it ) )
+                        $element_string .= $it . "=>" . $el;
+                    else
+                        $element_string .= $el;
 
                     if(++$i !== count( $element ) ){
                         $element_string .= ',';
@@ -277,7 +393,7 @@ class ACUI_Helper{
                 $element = $element_string;
             }
 
-            $element = sanitize_textarea_field( $element );
+            $element = esc_html( $element );
             echo "<td>$element</td>";
         }
 
@@ -310,7 +426,7 @@ class ACUI_Helper{
                 <?php foreach( $errors as $error ): ?>
                 <tr>
                     <td><?php echo $error['row']; ?></td>
-                    <td><?php echo $error['message']; ?></td>
+                    <td><?php echo esc_html( $error['message'] ); ?></td>
                     <td><?php echo $error['type']; ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -322,7 +438,7 @@ class ACUI_Helper{
     function print_results( $results, $errors ){
         ?>
         <h3><?php _e( 'Results', 'import-users-from-csv-with-meta' ); ?></h3>
-        <table id="acui_errors">
+        <table id="acui_results">
             <tbody>
                 <tr>
                     <th><?php _e( 'Users processed', 'import-users-from-csv-with-meta' ); ?></th>
@@ -337,6 +453,10 @@ class ACUI_Helper{
                     <td><?php echo $results['updated']; ?></td>
                 </tr>
                 <tr>
+                    <th><?php _e( 'Users deleted', 'import-users-from-csv-with-meta' ); ?></th>
+                    <td><?php echo $results['deleted']; ?></td>
+                </tr>
+                <tr>
                     <th><?php _e( 'Errors, warnings and notices found', 'import-users-from-csv-with-meta' ); ?></td>
                     <td><?php echo count( $errors ); ?></td>
                 </tr>
@@ -345,11 +465,20 @@ class ACUI_Helper{
         <?php
     }
 
+    function print_end_of_process(){
+        ?>
+        <br/>
+        <p><?php printf( __( 'Process finished you can go <a href="%s">here to see results</a> or you can do <a href="%s">a new import</a>.', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'users.php' ), get_admin_url( null, 'tools.php?page=acui&tab=homepage' ) ); ?></p>
+        <?php
+    }
+
     function execute_datatable(){
         ?>
         <script>
         jQuery( document ).ready( function( $ ){
-            $( '#acui_results,#acui_errors' ).DataTable();
+            $( '#acui_results,#acui_errors' ).DataTable({
+                "scrollX": true,
+            });
         } )
         </script>
         <?php
@@ -374,6 +503,20 @@ class ACUI_Helper{
         <?php
     }
 
+    static function get_array_from_cell( $value ){
+        if( strpos( $value, "=>" ) === false )
+            return explode( "::", $value );
+        
+        $array_prepared = array();
+
+        foreach( explode( "::", $value ) as $data ){
+            $key_value = explode( "=>", $data );
+            $array_prepared[ $key_value[0] ] = $key_value[1];
+        }
+
+        return $array_prepared;
+    }
+
     static function get_value_from_row( $key, $headers, $row, $user_id = 0 ){
         $pos = array_search( $key, $headers );
 
@@ -383,4 +526,43 @@ class ACUI_Helper{
 
         return $row[ $pos ];
     }
+
+    static function show_meta( $user_id, $meta_key ){
+        $user_meta = get_user_meta( $user_id, $meta_key, true );
+        return is_array( $user_meta ) ? var_export( $user_meta, true ) : $user_meta;
+    }
+
+    // notices
+    static function get_notices(){
+        $notices = get_transient( 'acui_notices' );
+        delete_transient( 'acui_notices' );
+        return is_array( $notices ) ? $notices : array();
+    }
+
+    static function add_notice( $notice ){
+        $notices = self::get_notices();
+        $notices[] = $notice;
+        set_transient( 'acui_notices', $notices, 120 );
+    }
+
+    function get_notice(){
+        $notices = self::get_notices();
+        
+        if( count( $notices ) == 0 )
+            return false;
+
+        $return = '';
+        foreach( $notices as $key => $notice ){
+            $return = $notice;
+            unset( $notices[ $key ] );
+            set_transient( 'acui_notices', $notices );
+            return $return;
+        }
+
+        return false;
+    }
+}
+
+function ACUIHelper(){
+    return ACUI_Helper::instance();
 }

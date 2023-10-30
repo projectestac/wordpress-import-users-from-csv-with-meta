@@ -1,4 +1,5 @@
 <?php
+
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
 if( !is_plugin_active( 'woocommerce-subscriptions/woocommerce-subscriptions.php' ) ){
@@ -79,7 +80,7 @@ class ACUI_WooCommerceSubscriptions{
 					<li><?php _e( 'You can import subscriptions with their info', 'import-users-from-csv-with-meta' ); ?>.</li>
 					<li><?php printf( __( 'Data format: use the column names <a href="%s">described here</a>, except the ones that are not used because we have the own ones:', 'import-users-from-csv-with-meta' ), "https://github.com/woocommerce/woocommerce-subscriptions-importer-exporter#csv-columns" ); ?> customer_id, customer_email and customer_username.</li>
 					<li><?php printf( __( 'Download <a href="%s">this sample file</a> to see how it works', 'import-users-from-csv-with-meta' ), esc_url( plugins_url( 'samples/wcs-import-sample.csv', dirname( __FILE__ ) ) ) ); ?>.</li>
-					<li><?php printf( __( 'This subscription importer is based in the official <a href="%S">WooCommerce Subscription Importer Exporter</a>.', 'import-users-from-csv-with-meta' ), "https://github.com/woocommerce/woocommerce-subscriptions-importer-exporter" ); ?></li>
+					<li><?php printf( __( 'This subscription importer is based in the official <a href="%s">WooCommerce Subscription Importer Exporter</a>.', 'import-users-from-csv-with-meta' ), "https://github.com/woocommerce/woocommerce-subscriptions-importer-exporter" ); ?></li>
 				</ol>
 			</td>
 		</tr>
