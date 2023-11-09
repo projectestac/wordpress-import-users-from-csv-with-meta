@@ -96,7 +96,7 @@ class ACUI_Homepage{
 						$list_roles = ACUI_Helper::get_editable_roles();
 						
 						foreach ($list_roles as $key => $value) {
-							if( in_array( $key, $last_roles_used ) )
+							if( in_array( $key, $last_roles_used == NULL ? [] : $last_roles_used ) )
 								echo "<label id='$key' style='margin-right:5px;'><input name='role[]' type='checkbox' checked='checked' value='$key'/>$value</label>";
 							else
 								echo "<label id='$key' style='margin-right:5px;'><input name='role[]' type='checkbox' value='$key'/>$value</label>";
