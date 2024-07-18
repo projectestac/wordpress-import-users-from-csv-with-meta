@@ -107,6 +107,16 @@ class ACUI_Import{
                 'help' => __( 'More...', 'import-users-from-csv-with-meta' )
         );
     
+        // XTEC ************ AFEGIT - Hidden unnecessary tabs
+        // 2021.04.23 @nacho
+        // 2021.04.28 @aginard
+        if (!is_xtec_super_admin()) {
+            $tabs = [
+                'homepage' => __( 'Import', 'import-users-from-csv-with-meta' ),
+            ];
+        }
+        // ************ FI
+
         $tabs = apply_filters( 'acui_tabs', $tabs );
     
         echo '<div id="icon-themes" class="icon32"><br></div>';
@@ -788,6 +798,13 @@ class ACUI_Import{
 
         while( $data = $manager->fgetcsv( $delimiter ) ):
             $row++;
+
+            // XTEC ************ AFEGIT - If username is 'xtecadmin' do nothing
+            // 2016.12.21 @xaviernietonsanchez
+            if ( strcasecmp( $data[0], 'xtecadmin' ) == 0 ) {
+                continue;
+            }
+            // ************ FI
 
             if( count( $data ) == 1 )
                 $data = $data[0];
