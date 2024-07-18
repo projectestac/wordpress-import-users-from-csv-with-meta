@@ -112,7 +112,7 @@ class ACUI_Email_Options{
 
 		<h3><?php _e( 'Customize the email that can be sent when importing users', 'import-users-from-csv-with-meta' ); ?></h3>
 
-		<p><?php _e( 'Mail subject:', 'import-users-from-csv-with-meta' ); ?><input name="subject_mail" size="100" value="<?php echo $subject_mail; ?>" id="title" autocomplete="off" type="text"></p>
+		<p><?php _e( 'Mail subject:', 'import-users-from-csv-with-meta' ); ?><input name="subject_mail" size="100" value="<?php echo esc_html( $subject_mail ); ?>" id="title" autocomplete="off" type="text"></p>
 		
 		<?php if( $disable_wp_editor ): ?>
 		<p><textarea name='body_mail' style="width:100%;" rows="20"><?php echo $body_mail; ?></textarea></p>

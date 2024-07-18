@@ -46,7 +46,7 @@ class ACUI_Homepage{
 			<div class="header">
 				<?php do_action( 'acui_homepage_start' ); ?>
 
-				<div id='message' class='updated acui-message'><?php sprintf( _e( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. Both data are required unless you use <a href="%">this addon to allow empty emails</a>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></div>
+				<div id='message' class='updated acui-message'><?php printf( __( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. Both data are required unless you use <a href="%s">this addon to allow empty emails</a>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></div>
 				<div id='message-password' class='error acui-message'><?php _e( 'Please, read carefully how <strong>passwords are managed</strong> and also take note about capitalization, this plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></div>
 
 				<h2><?php _e( 'Import users and customers from CSV','import-users-from-csv-with-meta' ); ?></h2>
@@ -56,6 +56,10 @@ class ACUI_Homepage{
 		<div class="row">
 			<div class="main_bar">
 				<form method="POST" id="acui_form" enctype="multipart/form-data" action="" accept-charset="utf-8">
+
+				<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn_up" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
+				<input class="button-primary" type="submit" name="save_options" value="<?php _e( 'Save options without importing', 'import-users-from-csv-with-meta' ); ?>"/>
+
 				<h2 id="acui_file_header"><?php _e( 'File', 'import-users-from-csv-with-meta'); ?></h2>
 				<table  id="acui_file_wrapper" class="form-table">
 					<tbody>
@@ -94,7 +98,8 @@ class ACUI_Homepage{
 							foreach ( ACUI_Helper::get_editable_roles() as $key => $value )
 							ACUIHTML()->checkbox( array( 'label' => translate_user_role( $value ), 'name' => 'role[]', 'compare_value' => $settings->get( 'role' ), 'current' => $key, 'array' => true, 'class' => 'roles' ) );
 						?>
-						<p class="description"><?php _e( 'You can also import roles from a CSV column. Please read documentation tab to see how it can be done. If you choose more than one role, the roles would be assigned correctly but you should use some plugin like <a href="https://wordpress.org/plugins/user-role-editor/">User Role Editor</a> to manage them.', 'import-users-from-csv-with-meta' ); ?></p>
+						<p class="description"><?php _e( sprintf( 'You can also import roles from a CSV column. Please read documentation tab to see how it can be done. If you choose more than one role, the roles would be assigned correctly but you should use <a href="https://wordpress.org/plugins/profile-builder/">Profile Builder - Roles Editor</a> to manage them. <a href="%s">Click to Install & Activate</a>', esc_url( wp_nonce_url( self_admin_url('update.php?action=install-plugin&plugin=profile-builder'), 'install-plugin_profile-builder') ) ), 'import-users-from-csv-with-meta' ); ?></p>
+						
 						</td>
 					</tr>
 
@@ -267,7 +272,7 @@ class ACUI_Homepage{
 				<?php wp_nonce_field( 'codection-security', 'security' ); ?>
 
 				<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
-				<input class="button-primary" type="submit" name="save_options" id="save_options" value="<?php _e( 'Save options without importing', 'import-users-from-csv-with-meta' ); ?>"/>
+				<input class="button-primary" type="submit" name="save_options" value="<?php _e( 'Save options without importing', 'import-users-from-csv-with-meta' ); ?>"/>
 				</form>
 			</div>
 
@@ -363,7 +368,7 @@ class ACUI_Homepage{
 	jQuery( document ).ready( function( $ ){
 		check_delete_users_checked();
 
-        $( '#uploadfile_btn' ).click( function(){
+        $( '#uploadfile_btn,#uploadfile_btn_up' ).click( function(){
             if( $( '#uploadfile' ).val() == "" && $( '#upload_file' ).is( ':visible' ) ) {
                 alert("<?php _e( 'Please choose a file', 'import-users-from-csv-with-meta' ); ?>");
                 return false;
@@ -459,9 +464,6 @@ class ACUI_Homepage{
                 allowClear: true,
                 placeholder: { id: '', title: '<?php _e( 'Delete posts of deleted users without assigning to any user', 'import-users-from-csv-with-meta' )  ?>' },
                 data: function( params ) {
-                    if( params.term.trim().length < 3 )
-                        throw false;
-  
                     var query = {
                         search: params.term,
                         _wpnonce: '<?php echo wp_create_nonce( 'codection-security' ); ?>',

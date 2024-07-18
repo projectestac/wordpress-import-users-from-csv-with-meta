@@ -35,7 +35,7 @@ class ACUI_Exporter{
 	padding: 20px;
 }
 
-#acui_exporter .user-exporter-progress-wrapper{
+.acui_exporter .user-exporter-progress-wrapper{
     padding: 5px;
     background-color: white;
     width: 80%;
@@ -43,7 +43,7 @@ class ACUI_Exporter{
     text-align: center;
 }
 
-#acui_exporter .user-exporter-progress{
+.acui_exporter .user-exporter-progress{
     width: 100%;
     height: 42px;
 	border: 0;
@@ -74,12 +74,12 @@ class ACUI_Exporter{
 	float: right;
 }
 
-#acui_exporter.user-exporter__exporting table,
-#acui_exporter .user-exporter-progress-wrapper{
+.acui_exporter.user-exporter__exporting table,
+.acui_exporter .user-exporter-progress-wrapper{
     display: none;
 }
 
-#acui_exporter.user-exporter__exporting .user-exporter-progress-wrapper{
+.acui_exporter.user-exporter__exporting .user-exporter-progress-wrapper{
     display: block;
 }
         </style>
@@ -92,7 +92,7 @@ class ACUI_Exporter{
 	<div id="acui_export_results"></div>
 
 	<h3 id="acui_export_users_header"><?php _e( 'Export users', 'import-users-from-csv-with-meta' ); ?></h3>
-	<form id="acui_exporter">
+	<form class="acui_exporter">
 		<table class="form-table">
 			<tbody>
 				<tr id="acui_role_wrapper" valign="top">
@@ -199,7 +199,7 @@ class ACUI_Exporter{
 		$( '#save-without-exporting' ).click( function(){
 			var data = {
 				'action': 'acui_export_save_settings',
-				'settings': $( '#acui_exporter' ).serialize(),
+				'settings': $( '.acui_exporter' ).serialize(),
 				'security': '<?php echo wp_create_nonce( "codection-security" ); ?>'
 			};
 

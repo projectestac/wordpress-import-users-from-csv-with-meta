@@ -62,6 +62,11 @@ class ACUI_Force_Reset_Password{
 	}
 
 	function ajax_force_reset_password_delete_metas(){
+		check_ajax_referer( 'codection-security', 'security' );
+
+		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+			wp_die( __( 'Only users who are able to create users can remove the force reset password flag.', 'import-users-from-csv-with-meta' ) );
+
 		global $wpdb;
 		$rows = $wpdb->delete( $wpdb->usermeta, array( 'meta_key' => 'acui_force_reset_password' ) );
 		$result = ( $rows === false ) ? 'ERROR' : $rows;

@@ -3,7 +3,7 @@
 Plugin Name:	Import and export users and customers
 Plugin URI:		https://www.codection.com
 Description:	Using this plugin you will be able to import and export users or customers choosing many options and interacting with lots of other plugins
-Version:		1.23.5
+Version:		1.26.10
 Author:			codection
 Author URI: 	https://codection.com
 License:     	GPL2
@@ -11,11 +11,10 @@ License URI: 	https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: import-users-from-csv-with-meta
 Domain Path: /languages
 */
-
 if ( ! defined( 'ABSPATH' ) ) 
 	exit;
 
-define( 'ACUI_VERSION', '1.23.5' );
+define( 'ACUI_VERSION', '1.26.10' );
 
 class ImportExportUsersCustomers{
 	var $file;
@@ -64,6 +63,9 @@ class ImportExportUsersCustomers{
 		foreach ( glob( plugin_dir_path( __FILE__ ) . "addons/*.php" ) as $file ) {
 			include_once( $file );
 		}
+
+		// libs
+		include_once( plugin_dir_path( __FILE__ ) . "lib/action-scheduler/action-scheduler.php" );
 	}
 	
 	static function activate(){
@@ -76,7 +78,7 @@ class ImportExportUsersCustomers{
 	}
 
 	static function deactivate(){
-		wp_clear_scheduled_hook( 'acui_cron' );
+		as_unschedule_all_actions( 'acui_cron_process');
 	}
 
 	function menu() {

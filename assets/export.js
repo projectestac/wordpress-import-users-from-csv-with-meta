@@ -101,5 +101,7 @@
 		return this;
 	};
 
-	$( '#acui_exporter' ).user_export_form();
+	$( '.acui_exporter' ).each( function( index, element ){
+		$( element ).user_export_form();
+	} );
 })( jQuery, window );

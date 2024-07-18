@@ -29,21 +29,17 @@ class ACUI_Helper{
 	}
 
     function detect_delimiter( $file ) {
-        $delimiters = array(
-            ';' => 0,
-            ',' => 0,
-            "\t" => 0,
-            "|" => 0
-        );
+        $delimiters = array( ';' => 0, ',' => 0, "\t" => 0, "|" => 0 );
     
-        $handle = @fopen($file, "r");
-        $firstLine = fgets($handle);
-        fclose($handle); 
-        foreach ($delimiters as $delimiter => &$count) {
-            $count = count(str_getcsv($firstLine, $delimiter));
+        $handle = @fopen( $file, "r" );
+        $firstLine = fgets( $handle );
+        fclose( $handle );
+
+        foreach( $delimiters as $delimiter => &$count ) {
+            $count = count( str_getcsv( $firstLine, $delimiter ) );
         }
     
-        return array_search(max($delimiters), $delimiters);
+        return array_search( max( $delimiters ), $delimiters );
     }
 
     function user_id_exists( $user_id ){
@@ -110,6 +106,11 @@ class ACUI_Helper{
         return $result;
     }
 
+    function get_seconds_by_period( $period ){
+        $loaded_periods = wp_get_schedules();
+        return isset( $loaded_periods[ $period ] ) ? $loaded_periods[ $period ]['interval'] : 0;
+    }
+
     static function get_errors_by_row( $errors, $row, $type = 'error' ){
         $errors_found = array();
 
@@ -123,19 +124,19 @@ class ACUI_Helper{
     }
 
     function string_conversion( $string ){
-        if(!preg_match('%(?:
-        [\xC2-\xDF][\x80-\xBF]        # non-overlong 2-byte
-        |\xE0[\xA0-\xBF][\x80-\xBF]               # excluding overlongs
-        |[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}      # straight 3-byte
-        |\xED[\x80-\x9F][\x80-\xBF]               # excluding surrogates
-        |\xF0[\x90-\xBF][\x80-\xBF]{2}    # planes 1-3
-        |[\xF1-\xF3][\x80-\xBF]{3}                  # planes 4-15
-        |\xF4[\x80-\x8F][\x80-\xBF]{2}    # plane 16
-        )+%xs', $string)){
-            return utf8_encode($string);
-        }
-        else
-            return $string;
+        $use_mb = function_exists( 'mb_convert_encoding' );
+		if ( $use_mb ) {
+			$encoding = mb_detect_encoding( $string, mb_detect_order(), true );
+			if ( $encoding ) {
+				$string = mb_convert_encoding( $string, 'UTF-8', $encoding );
+			} else {
+				$string = mb_convert_encoding( $string, 'UTF-8', 'UTF-8' );
+			}
+		} else {
+			$string = wp_check_invalid_utf8( $string, true );
+		}
+
+        return $string;
     }
 
     function get_wp_users_fields(){
@@ -200,7 +201,9 @@ class ACUI_Helper{
         return false;
     }
 
-    function new_error( $row, &$errors_totals, $message = '', $type = 'error' ){
+    function new_error( $row, $message = '', $type = 'error' ){
+        global $errors_totals;
+
         switch( $type ){
             case 'error':
                 $errors_totals['errors']++;
@@ -247,6 +250,9 @@ class ACUI_Helper{
     static function get_attachment_id_by_url( $url ) {
         $wp_upload_dir = wp_upload_dir();
         $dir = set_url_scheme( trailingslashit( $wp_upload_dir['baseurl'] ), 'relative' );
+
+        if( !is_string( $url ) )
+            return false;
     
         if ( false !== strpos( $url, $dir ) ) {    
             $file = basename( $url );
@@ -531,6 +537,20 @@ class ACUI_Helper{
         $user_meta = get_user_meta( $user_id, $meta_key, true );
         return is_array( $user_meta ) ? var_export( $user_meta, true ) : $user_meta;
     }
+
+    function maybe_disable_wordpress_core_emails(){
+        if( !get_option('acui_automatic_wordpress_email') ){
+            add_filter( 'send_email_change_email', function() { return false; }, PHP_INT_MAX );
+            add_filter( 'send_password_change_email', function() { return false; }, PHP_INT_MAX );
+        }
+    }
+
+    function maybe_enable_wordpress_core_emails(){
+        if( !get_option('acui_automatic_wordpress_email') ){
+            remove_filter( 'send_email_change_email', function() { return false; }, 999 );
+            remove_filter( 'send_password_change_email', function() { return false; }, 999 );
+        }
+    }    
 
     // notices
     static function get_notices(){

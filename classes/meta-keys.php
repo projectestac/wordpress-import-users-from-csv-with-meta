@@ -109,7 +109,7 @@ class ACUI_MetaKeys_Table extends WP_List_Table {
 
 	    $usermeta = reset( $usermeta );
 
-	    return $usermeta['meta_value'];
+	    return htmlspecialchars( $usermeta['meta_value'] );
 	}
 
 	function get_type( $meta_key ){

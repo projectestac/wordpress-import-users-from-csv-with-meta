@@ -4,7 +4,7 @@ use Automattic\WooCommerce\Admin\API\Reports\Customers\DataStore as CustomersDat
 
 if ( ! defined( 'ABSPATH' ) ) exit; 
 
-if( !is_plugin_active( 'woocommerce/woocommerce.php' ) ){
+if( !is_plugin_active( 'woocommerce/woocommerce.php' ) || !class_exists( 'woocommerce' ) ){
 	return;
 }
 

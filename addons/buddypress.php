@@ -7,7 +7,8 @@ if( !is_plugin_active( 'buddypress/bp-loader.php' ) && !function_exists( 'bp_is_
 }
 
 class ACUI_Buddypress{
-	var $fields;
+	var $fields_name;
+	var $fields_id;
 	var $profile_groups;
 	var $plugin_path;
 
@@ -21,7 +22,8 @@ class ACUI_Buddypress{
 			require_once( $this->plugin_path . "bp-groups/classes/class-bp-groups-member.php" );
 		
 		$this->profile_groups = $this->get_profile_groups();
-		$this->fields = $this->get_fields();
+		$this->fields_name = $this->get_fields_name();
+		$this->fields_id = $this->get_fields_id();
 	}
 	
 	function hooks(){
@@ -29,19 +31,19 @@ class ACUI_Buddypress{
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
 		add_filter( 'acui_export_columns', array( $this, 'export_columns' ), 10, 1 );
 		add_filter( 'acui_export_data', array( $this, 'export_data' ), 10, 3 );
-		add_action( 'post_acui_import_single_user', array( $this, 'import' ), 10, 6 );	
+		add_action( 'post_acui_import_single_user', array( $this, 'import' ), 10, 10 );	
 		add_action( 'post_acui_import_single_user', array( $this, 'import_avatar' ), 10, 3 );	
 	}
 
 	function restricted_fields( $acui_restricted_fields ){
-		return array_merge( $acui_restricted_fields, array( 'bp_group', 'bp_group_role', 'bp_avatar' ), $this->fields );
+		return array_merge( $acui_restricted_fields, array( 'bp_group', 'bp_group_role', 'bp_avatar' ), $this->fields_name );
 	}
 
 	function get_profile_groups(){
 		return BP_XProfile_Group::get( array( 'fetch_fields' => true ) );
 	}
 
-	public function get_fields(){
+	function get_fields_name(){
 		$buddypress_fields = array();
 		
 		if ( !empty( $this->profile_groups ) ) {
@@ -55,6 +57,22 @@ class ACUI_Buddypress{
 		}
 
 		return $buddypress_fields;
+	}
+
+	function get_fields_id(){
+		$ids = array();
+		
+		if ( !empty( $this->profile_groups ) ) {
+			 foreach ( $this->profile_groups as $profile_group ) {
+				if ( !empty( $profile_group->fields ) ) {				
+					foreach ( $profile_group->fields as $field ) {
+						$ids[] = $field->id;
+					}
+				}
+			}
+		}
+
+		return $ids;
 	}
 
 	function get_field_type( $field_name ){
@@ -96,19 +114,20 @@ class ACUI_Buddypress{
 		$member_types = bp_get_member_type( $user_id, false );
 		return ( is_array( $member_types ) ) ? implode( ",", $member_types ) : $member_types;
 	}
-	
+
 	function documentation(){
 		?>
 		<tr valign="top">
 			<th scope="row"><?php _e( 'BuddyPress/BuddyBoss fields', 'import-users-from-csv-with-meta'); ?></th>
 			<td><?php _e( 'You can insert any profile from BuddyPress using his name as header. Plugin will check, before import, which fields are defined in BuddyPress and will assign it in the update. You can use this fields:', 'import-users-from-csv-with-meta' ); ?>
 				<ul style="list-style:disc outside none;margin-left:2em;">
-					<?php foreach ( $this->get_fields() as $buddypress_field ): 
+					<?php foreach ( $this->get_fields_name() as $buddypress_field ): 
 						$type = $this->get_field_type( $buddypress_field ); 
 					?>
 					<li><?php echo $buddypress_field; ?> - <?php echo $type . $this->get_type_import_help( $type ); ?></li>
 					<?php endforeach; ?>
 				</ul>
+				<?php _e( 'The visibility options of each field when importing will be the default ones defined by BuddyPress/BuddyBoss.', 'import-users-from-csv-with-meta' ); ?>
 			</td>
 		</tr>
 		<tr valign="top">
@@ -139,7 +158,7 @@ class ACUI_Buddypress{
 	}
 
 	function export_columns( $row ){
-		foreach ( $this->fields as $key ) {
+		foreach ( $this->fields_name as $key ) {
 			$row[ $key ] = $key;
 		}
 
@@ -150,9 +169,9 @@ class ACUI_Buddypress{
 	}
 
 	function export_data( $row, $user, $args ){
-		$fields_to_export = ( count( $args['filtered_columns'] ) == 0 ) ? $this->fields : array_intersect( $this->fields, $args['filtered_columns'] );
-		
-        foreach( $fields_to_export as $key ) {
+		$fields_to_export = ( count( $args['filtered_columns'] ) == 0 ) ? $this->fields_name : array_intersect( $this->fields_name, $args['filtered_columns'] );
+
+		foreach( $fields_to_export as $key ) {
 			$row[ $key ] = xprofile_get_field_data( $key, $user, 'comma' );
 		}
 
@@ -164,11 +183,11 @@ class ACUI_Buddypress{
 
 		return $row;
 	}
-
-	function import( $headers, $row, $user_id, $role, $positions, $form_data ){
+	
+	function import( $headers, $row, $user_id, $role, $positions, $form_data, $is_frontend, $is_cron, $password_changed, $created ){
         $update_roles_existing_users = isset( $form_data["update_roles_existing_users"] ) ? sanitize_text_field( $form_data["update_roles_existing_users"] ) : '';
 
-		foreach( $this->fields as $field ){
+		foreach( $this->fields_name as $field ){
 			$pos = array_search( $field, $headers );
 
 			if( $pos === FALSE )
@@ -239,6 +258,15 @@ class ACUI_Buddypress{
 		$pos_member_type = array_search( 'bp_member_type', $headers );
 		if( $pos_member_type !== FALSE ){
 			bp_set_member_type( $user_id, $row[$pos_member_type] );
+		}
+
+		if( $created ){
+			$bp_xprofile_visibility_levels = array();
+			foreach( $this->fields_id as $field_id ){
+				$bp_xprofile_visibility_levels[ $field_id ] = 'public';
+			}
+
+			bp_update_user_meta( $user_id, 'bp_xprofile_visibility_levels', $bp_xprofile_visibility_levels );
 		}
 	}
 

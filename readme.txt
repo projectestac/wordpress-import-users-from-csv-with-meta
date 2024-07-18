@@ -1,14 +1,14 @@
 === Import and export users and customers ===
 Contributors: carazo, hornero
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
-Tags: csv, import, export, importer, exporter, meta data, meta, user, users, user meta,  editor, profile, custom, fields, delimiter, update, insert, automatically, cron
+Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
-Tested up to: 6.4
-Stable tag: 1.23.5
+Tested up to: 6.6
+Stable tag: 1.26.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Import and export users and customers using CSV files including custom user meta and roles. Integrations with lots of other plugins. Frontend upload, cron import and much more.
+Import and export users and customers including user meta, roles, and other. Compatible with many plugins. Do it from the front end or using cron.
 
 == Description ==
 
@@ -20,7 +20,7 @@ Clean and easy-to-use import and export users and customer plugin, for WordPress
 *	Import thousends of users or customers in only some seconds
 *   Export users or customers to a CSV file, filtering by role or registered date
 *	You can also import meta-data like data from WooCommerce customers
-*	You can assign roles while importing
+*	You can assign roles while importing. To create new user roles or manage existing ones we recommend you using [Profile Builder - Roles Editor](https://wordpress.org/plugins/profile-builder/)
 *	Send a mail to every new user, this mails can be saved as templates and are fully customizable, before sending you can test it
 *	Use your own 
 *	You can also update users if the user is already in your WordPress
@@ -36,7 +36,7 @@ Moreover this plugin is compatible with many other plugins to be able to import 
 *	WooCommerce Subscriptions: to create subscriptions associated with users while they are being imported
 *	BuddyPress: to import custom BuddyPress avatars, fields, groups and roles
 *   Advanced Custom Fields: to import data to the fields you define there
-*	Paid Membership Pro: to import memberships
+*	Paid Membership Pro: to import memberships, included compatibility with PMPro version 3
 *	Indeed Ultimate Membership Pro: to import memberships
 *   Paid Member Subscriptions: to import memberships
 *	Allow Multiple Accounts: plugin will allow the same rules importing than this plugin
@@ -54,17 +54,26 @@ If you have some problem or doubt:
 *	Read our documentation
 *	Ask anything in support forum, we try to give the best support
 
-In Codection we have more plugins, please take a look to them.
+In Codection we have more plugins, please take a look to them. 
 
 *	[RedSys Gateway for WooCommerce Pro a plugin to connect your WooCommerce to RedSys](https://codection.com/producto/redsys-gateway-for-woocommerce) (premium)
 *	[Ceca Gateway for WooCommerce Pro a plugin to connect your WooCommerce to Ceca](https://codection.com/producto/ceca-gateway-for-woocommerce-pro/) (premium)
-*	[RedSys Button for WordPress a plugin to receive payments using RedSys in WordPress without using WooCommerce](https://codection.com/producto/redsys-button-wordpress/) (premium)
+
 *	[RedSys Gateway for Contact Form 7 a plugin to receive payments using RedSys in WordPress using the popular contact plugin Contact Form 7](https://codection.com/producto/redsys-gateway-for-contact-form-7/) (premium)
 *	[Ceca Gateway for Contact Form 7 a plugin to receive payments using Ceca in WordPress using the popular contact plugin Contact Form 7](https://codection.com/producto/ceca-gateway-for-contact-form-7/) (premium)
+*	[RedSys & Bizum Gateway for Gravity Forms a plugin to receive payments using RedSys in Gravity Forms](https://codection.com/plugin/redsys-bizum-gateway-for-gravity-forms/) (premium)
+*	[RedSys & Bizum Gateway for WPForms a plugin to receive payments using RedSys WP Forms](https://codection.com/plugin/redsys-gateway-for-wpforms/) (premium)
+
+*	[RedSys & Bizum for GiveWP a plugin to receive payments using RedSys in Give WP the most popular donation plugin and fundraising platform for WordPress](https://codection.com/plugin/redsys-bizum-for-givewp/) (premium)
+
+*	[RedSys Link Generator a plugin to receive payments using payment links like PayGold but better](https://codection.com/plugin/redsys-link-generator/) (premium)
+*	[RedSys & Bizum Gateway for EDD Pro a plugin to receive payments using RedSys with Easy Digital Downloads](https://codection.com/plugin/redsys-gateway-for-edd-pro/) (premium)
+
 *	[RedSys Gateway for WP Booking Calendar Pro a plugin to receive payments using RedSys in WordPress using WP Booking Calendar Pro](https://codection.com/producto/redsys-gateway-for-wp-booking-calendar-pro/) (premium)
-*	[RedSys Gateway for Goodlayers Tourmaster Pro a plugin to receive payments using RedSys in WordPress using Goodlayers Tourmaster Pro](https://codection.com/producto/redsys-gateway-for-goodlayers-tourmaster-pro/) (premium)
+
 *	[Clean Login a plugin to create your own register, log in, lost password and update profile forms](https://wordpress.org/plugins/clean-login/) (free)
 *   [Products Restricted Users for WooCommerce a plugin to restrict product visibility by user](https://wordpress.org/plugins/woo-products-restricted-users/) (free)
+
 *   [First payment date for WooCommerce Subscriptions a plugin to set a first payment date in membership sites with WooCommerce Subscriptions](https://wordpress.org/plugins/first-payment-date-for-woocommerce-subscriptions/) (free)
 *   [Payment Schedule for WooCommerce Subscriptions](https://import-wp.com/payment-schedule-for-woocommerce-subscriptions) (premium)
 
@@ -107,6 +116,89 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.26.10 =
+*   Improved the compatibility with Google Docs/Drive spreadsheet exported as CSV
+
+= 1.26.9 =
+*   CSVs are now never saved as WordPress attachments, even if they are later deleted, they are now read directly from temporary paths
+
+= 1.26.8 =
+*   Ready for WordPress 6.6
+*   Fixed a problem when the first row of an CSV contains symbols like :: that makes the plugin think this is an array
+
+= 1.26.7 =
+*   Included new sanitization checks
+
+= 1.26.6.1 =
+*   Readme updated
+
+= 1.26.6 =
+*   Fixed a problem changing roles of users not present in current CSV using standard import
+*   Included new checks
+
+= 1.26.5 =
+*   New hooks added to improve extensibility with emails
+*   Improved documentation in the BuddyPress/BuddyBoss addon
+
+= 1.26.4 =
+*   Improved the BuddyPress/BuddyBoss addon to include a mechanism to facilitate the calculation of the visibility of user fields that have been imported new
+
+= 1.26.3 =
+*   We now use unserialize with the allowed_classes flag set to false instead of maybe_unserialize to avoid any possibility of PHP code execution from CSV
+
+= 1.26.2 =
+*   Improved usability with some links
+
+= 1.26.1 =
+*   Ready for WordPress 6.5
+
+= 1.26 =
+*   Included compatibility with version 3 of Paid Membership Pro
+*   Included a new filter to filter a specific data in the export: acui_export_data_$key where $key is the specific value of the column for that value.
+
+= 1.25.2 =
+*   Including a conditional check to prevent WooCommerce from being declared active if it is not active because it has been forcefully deactivated 
+
+= 1.25.1 =
+*   On the home page, for importing users we now show the buttons to start the process or save the settings at the top, to facilitate cases where the same options are used repeatedly
+
+= 1.25 =
+*   You can now use multiple user download buttons on the front end. Each with its own options.
+
+= 1.24.8 =
+*   Changed the way charsets are converted
+*   Fixed a problem in select2 selector with AJAX call
+*   Fixed an issue when passing the value of which user to assign tickets to when users are deleted
+
+= 1.24.7 =
+*   Cron call using endpoint of REST-API now can only be done by users that can create users
+
+= 1.24.6 =
+*   Included new options in the shortcode to export users
+
+= 1.24.5 =
+*   Fixed a problem with a preg_match detecting commas
+
+= 1.24.4 =
+*   Improved the way input strings are treated to UTF-8
+*   Variables displayed in the shortcode are cleaned up before printing to allow only correct values for them
+
+= 1.24.3 =
+*   In the cron settings, when it comes to URLs or paths, if it comes to paths and any with a different ending than ".csv" is included, we return a blank string to avoid problems
+
+= 1.24.2 =
+*   Fixed a problem when choosing to delete users not present in the CSV that caused more users to be deleted than it should
+
+= 1.24.1 =
+*   Improved multisite support, multiple roles can now be added to sites instead of just one as before
+
+= 1.24 =
+*   Included ActionScheduler for cron task
+*   Added the word 'all' to use in the column named 'blogs' in multisite installation, users it will be added to all the blogs in the network
+*   Rewritten a large part of the user importer to improve the code and make it more modular and maintainable.
+*   Improved compatibility with PHP 8.2
+*   Fixed typos
 
 = 1.23.5 =
 *   Ready for WordPress 6.4
@@ -1538,6 +1630,10 @@ You can get:
 
 = Customizations, addons, develops... =
 [Write us directly to contacto@codection.com](mailto:contacto@codection.com).
+
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/import-users-from-csv-with-meta)
 
 == Installation ==
 

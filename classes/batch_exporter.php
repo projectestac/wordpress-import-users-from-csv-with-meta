@@ -392,8 +392,14 @@ class ACUI_Batch_Exporter{
 
 		$use_mb = function_exists( 'mb_convert_encoding' );
 		if ( $use_mb ) {
-			$encoding = mb_detect_encoding( $data, 'UTF-8, ISO-8859-1', true );
-			$data     = 'UTF-8' === $encoding ? $data : utf8_encode( $data );
+			$encoding = mb_detect_encoding( $data, mb_detect_order(), true );
+			if ( $encoding ) {
+				$data = mb_convert_encoding( $data, 'UTF-8', $encoding );
+			} else {
+				$data = mb_convert_encoding( $data, 'UTF-8', 'UTF-8' );
+			}
+		} else {
+			$data = wp_check_invalid_utf8( $data, true );
 		}
 
 		return $this->escape_data( $data );
@@ -614,6 +620,9 @@ class ACUI_Batch_Exporter{
 				'filtered_columns' => $this->get_filtered_columns() 
 			) );
 
+			foreach( $row as $key => $value )
+				$row[ $key ] = apply_filters( 'acui_export_data_' . $key, $value );
+
             $this->row_data[] = array_values( $row );
 		}
 	}
@@ -631,8 +640,8 @@ class ACUI_Batch_Exporter{
 			return implode( ',', ACUIHelper()->get_roles_by_user_id( $user ) );
 		}
 
-		if( ( is_array( $value ) || is_array( maybe_unserialize( $value ) ) ) && $this->get_display_arrays_as_comma_separated_list_of_values() ){
-			$value_array = is_serialized( $value ) ? unserialize( $value ) : $value;
+		if( ( is_array( $value ) || is_array( @unserialize( $value, array( 'allowed_classes' => false ) ) ) ) && $this->get_display_arrays_as_comma_separated_list_of_values() ){
+			$value_array = is_serialized( $value ) ? unserialize( $value, array( 'allowed_classes' => false ) ) : $value;
 
 			if( ACUIHelper()->array_one_dimension( $value_array ) && ACUIHelper()->array_correlative_index( $value_array ) && !ACUIHelper()->array_contains_wp_error( $value_array ) ){
 				return implode( ',', $value_array );

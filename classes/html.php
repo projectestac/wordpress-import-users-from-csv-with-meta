@@ -246,6 +246,7 @@ class ACUI_HTML{
             'type'         => 'text',
             'readonly'     => false,
 			'required'	   => false,
+			'attributes'   => array()
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -287,7 +288,13 @@ class ACUI_HTML{
 				$output .= '<span class="acui-description">' . esc_html( $args['desc'] ) . '</span>';
 			}
 
-			$output .= '<input type="' . esc_attr( $args['type'] ) . '" name="' . esc_attr( $args['name'] ) . '" id="' . esc_attr( $args['id'] )  . '" autocomplete="' . esc_attr( $args['autocomplete'] )  . '" value="' . esc_attr( $args['value'] ) . '" placeholder="' . esc_attr( $args['placeholder'] ) . '" class="' . $class . '" ' . $data . '' . $disabled . '' . $readonly . '' . $required . '/>';
+			$output .= '<input type="' . esc_attr( $args['type'] ) . '" name="' . esc_attr( $args['name'] ) . '" id="' . esc_attr( $args['id'] )  . '" autocomplete="' . esc_attr( $args['autocomplete'] )  . '" value="' . esc_attr( $args['value'] ) . '" placeholder="' . esc_attr( $args['placeholder'] ) . '" class="' . $class . '" ' . $data . '' . $disabled . '' . $readonly . '' . $required;
+			
+			foreach( $args['attributes'] as $key => $value ){
+				$output .= ' ' . $key . '="' . $value . '"';
+			}
+
+			$output .= '/>';
 
 		$output .= '</span>';
 

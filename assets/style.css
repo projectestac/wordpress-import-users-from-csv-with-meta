@@ -177,7 +177,7 @@ input[type=checkbox].acui-checkbox{
     list-style: disc;
 }
 
-#acui_exporter .user-exporter-progress-wrapper{
+.acui_exporter .user-exporter-progress-wrapper{
     padding: 5px;
     background-color: white;
     width: 80%;
@@ -185,7 +185,7 @@ input[type=checkbox].acui-checkbox{
     text-align: center;
 }
 
-#acui_exporter .user-exporter-progress{
+.acui_exporter .user-exporter-progress{
     width: 100%;
     height: 42px;
 	border: 0;
@@ -216,11 +216,11 @@ input[type=checkbox].acui-checkbox{
 	float: right;
 }
 
-#acui_exporter.user-exporter__exporting table,
-#acui_exporter .user-exporter-progress-wrapper{
+.acui_exporter.user-exporter__exporting table,
+.acui_exporter .user-exporter-progress-wrapper{
     display: none;
 }
 
-#acui_exporter.user-exporter__exporting .user-exporter-progress-wrapper{
+.acui_exporter.user-exporter__exporting .user-exporter-progress-wrapper{
     display: block;
 }

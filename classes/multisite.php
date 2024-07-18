@@ -27,8 +27,9 @@ class ACUI_Multisite{
 			<th scope="row"><?php _e( "Multisite is activated", 'import-users-from-csv-with-meta' ); ?></th>
 			<td><?php _e( "Plugin can assing users to blogs after importing them roles. This is how it works:", 'import-users-from-csv-with-meta' ); ?>
 				<ul style="list-style:disc outside none; margin-left:2em;">
-					<li><?php _e( "You have to <strong>create a column called 'blogs'</strong>: if cell is empty, it won't assign users to any blog; if cell has a value, it will be used. You have to fill it with blog_id", 'import-users-from-csv-with-meta' ); ?></li>
+					<li><?php _e( "You have to <strong>create a column called 'blogs'</strong>: if cell is empty, it won't assign users to any blog; if cell has a value, it will be used. You have to fill it with blog_id.", 'import-users-from-csv-with-meta' ); ?></li>
 					<li><?php _e( "Multiple blogs can be assigned creating <strong>a list of blog ids</strong> using commas to separate values.", 'import-users-from-csv-with-meta' ); ?></li>
+					<li><?php _e( "You can also use the word 'all' and it will be added to all the blogs in the network.", 'import-users-from-csv-with-meta' ); ?></li>
 				</ul>
 			</td>
 		</tr>
@@ -44,15 +45,46 @@ class ACUI_Multisite{
 		if( empty( $role ) )
 			$role = 'subscriber';
 
-		if( is_array( $role ) )
-			$role = reset( $role );
+		if( !is_array( $role ) )
+			$role = array( $role );
 
-		$user_blogs_csv = explode( ',', $row[ $pos ] );
-		$user_blogs_csv = array_filter( $user_blogs_csv, function( $value ){ return $value !== ''; } );
+		$user_blogs_csv = array();
 
-		foreach ( $user_blogs_csv as $blog_id ) {
-			add_user_to_blog( $blog_id, $user_id, $role );
+		if( $row[ $pos ] == 'all' ){
+			foreach ( $this->sites as $site ) {
+				$user_blogs_csv[] = $site->blog_id;
+			}
 		}
+		else{
+			$user_blogs_csv = explode( ',', $row[ $pos ] );
+			$user_blogs_csv = array_filter( $user_blogs_csv, function( $value ){ return $value !== ''; } );
+		}
+		
+		foreach ( $user_blogs_csv as $blog_id ) {
+			switch_to_blog( $blog_id );
+
+			foreach( $role as $current_role ){
+				$this->add_user_to_blog_modified( $blog_id, $user_id, $current_role );
+				do_action( 'add_user_to_blog', $user_id, $role, $blog_id );
+			}			
+	
+			clean_user_cache( $user_id );
+			wp_cache_delete( $blog_id . '_user_count', 'blog-details' );
+		
+			restore_current_blog();
+		}
+	}
+
+	function add_user_to_blog_modified( $blog_id, $user_id, $role ) {
+		$user = get_userdata( $user_id );
+	
+		if ( !get_user_meta( $user_id, 'primary_blog', true ) ) {
+			update_user_meta( $user_id, 'primary_blog', $blog_id );
+			$site = get_site( $blog_id );
+			update_user_meta( $user_id, 'source_domain', $site->domain );
+		}
+	
+		$user->add_role( $role );
 	}
 
 	function email_apply_wildcards( $string, $args ){

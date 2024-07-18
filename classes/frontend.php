@@ -52,20 +52,20 @@ class ACUI_Frontend{
 				<tr class="form-field">
 					<th scope="row"><label for=""><?php _e( 'Use this shortcode in any page or post', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-						<pre>[import-users-from-csv-with-meta]</pre>
+						<pre>[import-users]</pre>
 						<input class="button-primary" type="button" id="copy_to_clipboard" value="<?php _e( 'Copy to clipboard', 'import-users-from-csv-with-meta'); ?>"/>
 					</td>
 				</tr>
 
                 <tr class="form-field">
 					<th scope="row"><label for=""><?php _e( 'Attribute role', 'import-users-from-csv-with-meta' ); ?></label></th>
-					<td><?php _e( 'You can use role as attribute to choose directly in the shortcode the role to use during the import. Remind that you must use the role slug, for example:', 'import-users-from-csv-with-meta' ); ?> <pre>[import-users-from-csv-with-meta role="editor"]</pre>
+					<td><?php _e( 'You can use role as attribute to choose directly in the shortcode the role to use during the import. Remind that you must use the role slug, for example:', 'import-users-from-csv-with-meta' ); ?> <pre>[import-users role="editor"]</pre>
 					</td>
 				</tr>
 
                 <tr class="form-field">
 					<th scope="row"><label for=""><?php _e( 'Attribute delete-only-specified-role', 'import-users-from-csv-with-meta' ); ?></label></th>
-					<td><?php _e( 'You can use this attribute to make delete only users of the specified role that are not present in the CSV, for example:', 'import-users-from-csv-with-meta' ); ?> <pre>[import-users-from-csv-with-meta role="editor" delete-only-specified-role="true"]</pre> <?php _e( 'will only delete (if the deletion is active) the users not present in the CSV with are editors', 'import-users-from-csv-with-meta' ); ?>
+					<td><?php _e( 'You can use this attribute to make delete only users of the specified role that are not present in the CSV, for example:', 'import-users-from-csv-with-meta' ); ?> <pre>[import-users role="editor" delete-only-specified-role="true"]</pre> <?php _e( 'will only delete (if the deletion is active) the users not present in the CSV with are editors', 'import-users-from-csv-with-meta' ); ?>
 					</td>
 				</tr>
                 </tbody>
@@ -227,6 +227,12 @@ class ACUI_Frontend{
 					</td>
 				</tr>
 
+				<tr class="form-field">
+					<th scope="row"><label for=""><?php _e( 'Attribute columns', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td><?php _e( 'You can use columns attribute to set which columns must be exported and in which order. Use a list of fields separated by commas, for example', 'import-users-from-csv-with-meta' ); ?> <pre>[export-users columns="user_email,first_name,last_name"]</pre>
+					</td>
+				</tr>
+
                 <tr class="form-field">
 					<th scope="row"><label for=""><?php _e( 'Attribute from', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td><?php _e( 'You can use from attribute to filter users created from a specified date. Date format has to be: Y-m-d, for example:', 'import-users-from-csv-with-meta' ); ?> <pre>[export-users from="<?php echo date( 'Y-m-d' ); ?>"]</pre>
@@ -246,14 +252,20 @@ class ACUI_Frontend{
 				</tr>
 
                 <tr class="form-field">
-					<th scope="row"><label for=""><?php _e( 'Attribute order-alphabetically', 'import-users-from-csv-with-meta' ); ?></label></th>
-					<td><?php _e( 'You can use order-alphabetically attribute to order alphabetically the fields, for example', 'import-users-from-csv-with-meta' ); ?> <pre>[export-users order-alphabetically]</pre>
+					<th scope="row"><label for=""><?php _e( 'Attribute order_fields_alphabetically', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td><?php _e( 'You can use order_fields_alphabetically attribute to order alphabetically the fields, for example', 'import-users-from-csv-with-meta' ); ?> <pre>[export-users order_fields_alphabetically="yes"]</pre>
 					</td>
 				</tr>
 
-                <tr class="form-field">
-					<th scope="row"><label for=""><?php _e( 'Attribute columns', 'import-users-from-csv-with-meta' ); ?></label></th>
-					<td><?php _e( 'You can use columns attribute to set which columns must be exported and in which order. Use a list of fields separated by commas, for example', 'import-users-from-csv-with-meta' ); ?> <pre>[export-users columns="user_email,first_name,last_name"]</pre>
+				<tr class="form-field">
+					<th scope="row"><label for=""><?php _e( 'Attribute double_encapsulate_serialized_values', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td><?php _e( "Serialized values sometimes can have problems being displayed in Microsoft Excel or LibreOffice, we can double encapsulate this kind of data but you would not be able to import this data beucase instead of serialized data it would be managed as strings", 'import-users-from-csv-with-meta' ); ?> <pre>[export-users double_encapsulate_serialized_values="yes"]</pre>
+					</td>
+				</tr>
+
+				<tr class="form-field">
+					<th scope="row"><label for=""><?php _e( 'Attribute display_arrays_as_comma_separated_list_of_values', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td><?php _e( "This data cannot then be imported back into the database as an array if the exported file is imported.", 'import-users-from-csv-with-meta' ); ?> <pre>[export-users display_arrays_as_comma_separated_list_of_values="yes"]</pre>
 					</td>
 				</tr>
 
@@ -301,7 +313,7 @@ class ACUI_Frontend{
 			$( '#copy_to_clipboard' ).click( function(){
 				var $temp = $("<input>");
 				$("body").append($temp);
-				$temp.val( '[import-users-from-csv-with-meta]' ).select();
+				$temp.val( '[import-users]' ).select();
 				document.execCommand("copy");
 				$temp.remove();
 			} );
@@ -385,12 +397,9 @@ class ACUI_Frontend{
             else{
                 do_action( 'acui_pre_frontend_import' );
 
-                $file = array_keys( $_FILES );
-                $csv_file_id = $this->upload_file( $file[0] );
-
                 // start
                 $form_data = array();
-                $form_data["path_to_file"] = get_attached_file( $csv_file_id );
+                $form_data["path_to_file"] = sanitize_text_field( $_FILES['uploadfile']['tmp_name'] );
 
                 // emails
                 $form_data["sends_email"] = get_option( "acui_frontend_send_mail" );
@@ -418,8 +427,6 @@ class ACUI_Frontend{
                 
                 $acui_import = new ACUI_Import();
                 $acui_import->fileupload_process( $form_data, false, true );
-
-                wp_delete_attachment( $csv_file_id, true );
 
                 do_action( 'acui_post_frontend_import' );
             }
@@ -453,19 +460,38 @@ class ACUI_Frontend{
 		return ob_get_clean();
 	}
 
-	function upload_file( $file_handler ) {
-	    if ( $_FILES[$file_handler]['error'] !== UPLOAD_ERR_OK ) {
-	        __return_false();
-	    }
-	    require_once( ABSPATH . "wp-admin" . '/includes/image.php' );
-	    require_once( ABSPATH . "wp-admin" . '/includes/file.php' );
-	    require_once( ABSPATH . "wp-admin" . '/includes/media.php' );
-	    $attach_id = media_handle_upload( $file_handler, 0 );
-	    return $attach_id;
+	function sanitize_shortcode_values( $key, $value ){
+		switch( $key ){
+			case 'role':
+				return ( preg_match('/^[a-zA-Z0-9_-]+$/', $value ) ) ? $value : '';
+
+			case 'from':
+			case 'to:':
+				return ( preg_match( '/\b\d{4}-\d{2}-\d{2}\b/', $value ) ) ? $value : '';
+
+			case 'delimiter':
+				return ( in_array( $value, array_keys( ACUI_Helper::get_csv_delimiters_titles() ) ) ) ? $value : 'COMMA';
+
+			case 'order_fields_alphabetically':
+			case 'double_encapsulate_serialized_values':
+			case 'display_arrays_as_comma_separated_list_of_values':
+				return strtolower( $value ) == 'yes' ? 1 : 0;
+
+			case 'columns':
+				return ( preg_match('/^[,a-zA-Z0-9_-]+$/', $value ) ) ? $value : '';
+			
+			case 'orderby':
+				return ( preg_match('/^[a-zA-Z0-9_-]+$/', $value ) ) ? $value : '';
+
+			case 'order':
+				return ( strtoupper( $value ) == 'ASC' || strtoupper( $value ) == 'DESC' ) ? $value : 'ASC';
+		}
+
+		return '';
 	}
 
     function shortcode_export( $atts ) {
-        $atts = shortcode_atts( array( 'role' => '', 'from' => '', 'to' => '', 'delimiter' => '', 'order-alphabetically' => '', 'columns' => '', 'orderby' => '', 'order' => '' ), $atts );
+        $atts = shortcode_atts( array( 'role' => '', 'from' => '', 'to' => '', 'delimiter' => '', 'order_fields_alphabetically' => '', 'double_encapsulate_serialized_values' => '', 'display_arrays_as_comma_separated_list_of_values' => '', 'columns' => '', 'orderby' => '', 'order' => '' ), $atts );
 
 		wp_enqueue_script( 'jquery' );
 
@@ -478,11 +504,11 @@ class ACUI_Frontend{
         ACUI_Exporter::styles();
 		?>
         
-		<form method="POST" class="acui_frontend_form" id="acui_exporter">
+		<form method="POST" class="acui_frontend_form acui_exporter">
             <input type="hidden" name="acui_frontend_export" value="1"/>
         
             <?php foreach( $atts as $key => $value ): ?>
-            <input type="hidden" name="<?php echo $key; ?>" value="<?php echo $value; ?>"/>
+            <input type="hidden" name="<?php echo $key; ?>" value="<?php echo $this->sanitize_shortcode_values( $key, $value ); ?>"/>
             <?php endforeach; ?>
             
             <input class="acui_frontend_submit" type="submit" value="<?php apply_filters( 'acui_export_shortcode_button_text', _e( 'Export', 'import-users-from-csv-with-meta' ) ); ?>"/>
@@ -501,3 +527,4 @@ class ACUI_Frontend{
 
 $acui_frontend = new ACUI_Frontend();
 $acui_frontend->hooks();
+

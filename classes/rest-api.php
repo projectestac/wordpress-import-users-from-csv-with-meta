@@ -5,7 +5,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class ACUI_REST_API{
 	function __construct(){
 		add_action( 'rest_api_init', array( $this, 'init' ) );
-        add_filter( 'acui_rest_api_permission_callback', function(){ return true; } );
 	}
 
 	function init() {
