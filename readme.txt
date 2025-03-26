@@ -1,10 +1,10 @@
 === Import and export users and customers ===
-Contributors: carazo, hornero
+Contributors: carazo
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
-Tested up to: 6.6
-Stable tag: 1.26.10
+Tested up to: 6.7.2
+Stable tag: 1.28.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,82 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.28.4 =
+*   Fixed the export when selecting alphabetical order
+*   Fixed a fatal error in certain imports using certain roles
+*   Fixed a problem selecting no_role
+
+= 1.28.3 =
+*   You can now choose to delete or change the role of users that do not appear in the CSV but only of the role(s) that have appeared in the import
+
+= 1.28.2 =
+*   Fixed the export in the frontend using the shortcode when there is no role parameter
+
+= 1.28.1 =
+*   Fixed a problem with select2 enqueue
+*   Fixed the export in the frontend using the shortcode
+
+= 1.28 =
+*   The export dialog now allows the use of several roles
+*   Improved role selection interface on user import page
+
+= 1.27.16 =
+*   PMPro addon now import startdate and enddate with hours, minutes and seconds if needed
+
+= 1.27.15 =
+*   Including the possibility of changing field names when exporting fields
+
+= 1.27.14 =
+*   Fixed a problem with long exports created in the previous version
+
+= 1.27.13 =
+*   The name of the exported file has been anonymized so that no attacker can brute force the file while it is being generated and before it is downloaded to obtain information
+
+= 1.27.12 =
+*   Fixed the Melapress Login Security plugin, included compatibility with version 2.0
+
+= 1.27.11 =
+*   Fixed a bug that throws an error when trying to import an incomplete class to a user meta
+
+= 1.27.10 =
+*   Fixed a bug that creates a warning
+
+= 1.27.9 =
+*   Two new buttons have been added to the user window to access import and export directly
+
+= 1.27.8 =
+*   Fixed another problem with the Melapress Login Security addon
+
+= 1.27.7 =
+*   Ready for WordPress 6.7
+*   Fixed a problem in the link of email template in main import tab
+*   Action Scheduler now is only loaded if it is necessary
+*   Fixed another problem with the Melapress Login Security addon
+
+= 1.27.6 =
+*   Fixed a problem with the Melapress Login Security addon
+
+= 1.27.5 =
+*   More variables sanitized
+
+= 1.27.4 =
+*   Fixed a problem with some roles that were able to execute in backend but not using the shortcode in frontend
+*   Every export has an unique filename
+
+= 1.27.3 =
+*   Fixed some warnings
+
+= 1.27.2 =
+*   Improved the way the cron result log is shown
+*   Fixed some typos
+
+= 1.27.1 =
+*   New version of ActionScheduler included
+
+= 1.27 =
+*   Improved many messages of the plugin, thanks to the great help from Pierre Darmon who has completely revised the plugin’s messages and helped us to make it more understandable and professional, for us non-native English speakers.
+*   Fixed a problem that could create errors when trying to export data when there was a saved object
 
 = 1.26.10 =
 *   Improved the compatibility with Google Docs/Drive spreadsheet exported as CSV
